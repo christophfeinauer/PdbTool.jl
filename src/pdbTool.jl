@@ -1,10 +1,5 @@
 module pdbTool
 	
-	# Personal Belongings
-	if isfile("/home/christoph/polito/ppi/scripts/stdInc.jl")
-                include("/home/christoph/polito/ppi/scripts/stdInc.jl")
-        end
-
         scriptDir="/home/christoph/polito/ppi/scripts"
         if !isdir(scriptDir)
                 warn("ScriptDir not set correctly!")
@@ -68,7 +63,8 @@ module pdbTool
 	######################################################################	
 	# FUNCTION:		 parsePdb             	
 	######################################################################	
-	function parsePdb(pdbFile::String="/home/christoph/polito/ppi/data/pdb/2Z4K.pdb")
+	function parsePdb(pdbFile::String)
+		!isfile(pdbFile) && error("File not found")
 		pdb=Pdb()
 		for l in eachline(open(pdbFile))
 			if l[1:4]=="ATOM" && (l[17]==' ' || l[17]=='A')
