@@ -1,9 +1,4 @@
 module pdbTool
-	
-        scriptDir="/home/christoph/polito/ppi/scripts"
-        if !isdir(scriptDir)
-                warn("ScriptDir not set correctly!")
-        end
 
 	######################################################################	
 	# TYPE DEFINITIONS
@@ -141,9 +136,6 @@ module pdbTool
 		return pdb;
 	end
 
-
-
-
 	######################################################################	
 	# FUNCTION:		 atomDist             	
 	######################################################################	
@@ -230,10 +222,11 @@ module pdbTool
 			close(fid)
 		end
 	end
+
 	######################################################################	
 	# FUNCTION:		 chainSeq
 	######################################################################	
-	function chainSeq(chain)
+	function chainSeq(chain::Chain)
 		# Unordered pdbSeq
 		if !chain.isRNA
 			pdbSeq=[aminoAcidDict[chain.residue[k].aminoAcid] for k in keys(chain.residue)]
@@ -248,7 +241,7 @@ module pdbTool
 	######################################################################	
 	# FUNCTION:		 mapChainToHmm
 	######################################################################	
-	function mapChainToHmm(chain,hmmFile)
+	function mapChainToHmm(chain::Chain,hmmFile::String)
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
 			println("chain $(chain.identifier) already has a mapping.")
@@ -265,8 +258,10 @@ module pdbTool
 		else
 			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		end
-		align=[split(readall(`$scriptDir/stockholm2fasta $tempFile.out`),'\n')]	
-		rm("$tempFile"); rm("$tempFile.out")
+		st2fa(tempFile;oFile="$tempFile.out")
+		align=[split(readall(`cat $tempFile.out`),'\n')]	
+		rm("$tempFile")
+		rm("$tempFile.out")		
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
@@ -290,7 +285,7 @@ module pdbTool
 	######################################################################	
 	# FUNCTION:		 mapChainToHmmLegacy
 	######################################################################	
-	function mapChainToHmmLegacy(chain,hmmFile)
+	function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
 		println("LEGACY MAPPING ACTIVE")
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
@@ -308,8 +303,10 @@ module pdbTool
 		else
 			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		end
-		align=[split(readall(`$scriptDir/stockholm2fasta $tempFile.out`),'\n')]	
-		rm("$tempFile"); rm("$tempFile.out")
+		st2fa(tempFile;oFile="$tempFile.out")
+		align=[split(readall(`cat $tempFile.out`),'\n')]	
+		rm("$tempFile")
+		rm("$tempFile.out")
 		(pdbStart,pdbStop)=int(matchall(r"\d+",align[1]))
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
@@ -334,7 +331,7 @@ module pdbTool
 	######################################################################	
 	# FUNCTION:		 intraAlignDist
 	######################################################################	
-	function intraAlignDist(chain::Chain,out="distMat")
+	function intraAlignDist(chain::Chain;out="distMat")
 		if out=="distMat"
 			if chain.mappedTo=="" 
 				error("chain has no mapping")
@@ -565,9 +562,10 @@ module pdbTool
 	end
 
 	######################################################################	
-	# FUNCTION:		 getHmmLength(hmmFile)
+	# FUNCTION:		 getHmmLength
 	######################################################################	
-	function getHmmLength(hmmFile)
+	function getHmmLength(hmmFile::String)
+		!isfile(hmmFile) && error("File not readable")
 		for l in eachline(open(hmmFile))
 			if l[1:4] == "LENG" || l[1:4]=="CLEN"
 				LENG::Int64=int(match(r"\d+",l).match)
@@ -578,10 +576,10 @@ module pdbTool
 	end
 
 	######################################################################	
-	# FUNCTION:		 makeMarriedContactMap(chain1,chain2)
+	# FUNCTION:		 makeMarriedContactMap
 	######################################################################	
 	## IDIOCY: THIS DOES THE SAME THING AS THE FUNCTION "interAlignDist"
-	function makeMarriedContactMap(chain1,chain2;output::String="default")
+	function makeMarriedContactMap(chain1::Chain,chain2::Chain;output::String="default")
 		chain1map=chain1.mappedTo
 		chain2map=chain2.mappedTo
 		chain1map=="" && error("chain $(chain1.identifier) has no mapping")
@@ -630,11 +628,10 @@ module pdbTool
 		
 	end
 
-
 	######################################################################	
-	# FUNCTION:		 countContacts(chain)
+	# FUNCTION:		 countContacts
 	######################################################################	
-	function countContacts(chain;min_separation=5,cutoff=8.0)
+	function countContacts(chain::Chain;min_separation=5,cutoff=8.0)
 		nums=sort([n for n in keys(chain.align)])
 		contacts=0
 		for i=1:length(nums)
@@ -657,6 +654,53 @@ module pdbTool
 		end
 		return contacts
 	end
+
+	######################################################################	
+	# FUNCTION:		 st2fa
+	######################################################################	
+	function st2fa(iFile;oFile="default") 
+		isfile(iFile) && error("File not found")
+		if oFile=="default"
+			oFile="$iFile.st2fa"
+		end
+		iFid=open(iFile,"r")
+		oFid=open(oFile,"w")
+		seqDict=Dict{String,String}()
+		for line in eachline(iFid)
+			line[1]=='#' && continue
+			s=split(line)
+			length(s)!=2 && continue
+			if haskey(seqDict,s[1])
+				seqDict[s[1]]*=s[2]
+			else
+				seqDict[s[1]]=s[2]
+			end
+		end
+		close(iFid)
+		for k in keys(seqDict)
+			@printf(oFid,">%s \n%s\n",k,seqDict[k])
+		end
+		close(oFid)
+		return oFile
+	end
+
+	######################################################################	
+	# FUNCTION:		 fasta2seqDict
+	######################################################################	
+	function fasta2seqDict(iFile::String)
+		!isfile(iFile) && error("File not found")
+		iFid=open(iFile,"r")
+		seqDict=Dict{String,String}()
+		for head in eachline(iFid)
+			( head[1]!='>' || eof(iFid) ) && error("Fasta not readable")
+			seq=readline(iFid)
+			haskey(seqDict,head) && error("Fasta contains several entries for $head")
+			seqDict[head]=seq
+		end
+		close(iFid)
+		return seqDict
+	end
+
 	######################################################################	
 	# FUNCTION:		 interactionSurface(chain1,chain2)
 	######################################################################	
@@ -693,143 +737,8 @@ module pdbTool
 		end
 						
 	end
-	 ######################################################################  
-        # DATA:          aminoAcidChainDict
-        ######################################################################  
 
-        #http://www.uniprot.org/manual/non_std;Selenocysteine (Sec) and pyrrolysine (Pyl)
-        aminoAcidDict=Dict{String,String}()
-        aminoAcidDict["ALA"]="A";
-        aminoAcidDict["ARG"]="R";
-        aminoAcidDict["ASN"]="N";
-        aminoAcidDict["ASP"]="D";
-        aminoAcidDict["CYS"]="C";
-        aminoAcidDict["GLU"]="E";
-        aminoAcidDict["GLN"]="Q";
-        aminoAcidDict["GLY"]="G";
-        aminoAcidDict["HIS"]="H";
-        aminoAcidDict["ILE"]="I";
-        aminoAcidDict["LEU"]="L";
-        aminoAcidDict["LYS"]="K";
-        aminoAcidDict["MET"]="M";
-        aminoAcidDict["PHE"]="F";
-        aminoAcidDict["PRO"]="P";
-        aminoAcidDict["SER"]="S";
-        aminoAcidDict["THR"]="T";
-        aminoAcidDict["TRP"]="W";
-        aminoAcidDict["TYR"]="Y";
-        aminoAcidDict["VAL"]="V";
-        aminoAcidDict["SEC"]="U";
-        aminoAcidDict["PYL"]="O";
-	
-				
 
-	######### PARSE HELPERS
-	function parseRibosome(;blits::Bool=false,largeOnly::Bool=false,smallOnly::Bool=false,legacyMapping::Bool=false)
-		println("THIS IS A FUNCTION THAT WORKS ONLY ON MY DIRECTORY STRUCTURE")
-		pdbSmall=parsePdb("/home/christoph/polito/ppi/data/pdb/2Z4K.pdb")
-		if !smallOnly
-			pdbLarge=parsePdb("/home/christoph/polito/ppi/data/pdb/2Z4L.pdb")
-		end
-		println("Parsed PDBs, doing mapping")
-		if !blits
-			for k in keys(pdbSmall.chain)
-				if pdbSmall.chain[k].isRNA==true
-					continue
-				end
-				println("Mapping Small Subunit, chain $k")	
-				id=invSmallRiboChainDict[k]
-				mapFile="/home/christoph/polito/ppi/data/FINAL_SMALL/RS$id/RS$id.names.blastdb.mafft.ungap.hmmbuild"
-				if !legacyMapping
-					mapChainToHmm(pdbSmall.chain[k],mapFile)
-				else
-					mapChainToHmmLegacy(pdbSmall.chain[k],mapFile)
-				end
-				#	# Get the naccess values
-				#	try
-				#	x=readdlm("/home/christoph/polito/ppi/data/FINAL_SMALL/naccess/RS$(id)_align.rsa",' ')
-				#	for i=1:size(x,1)
-				#		if x[i,3]>0
-				#			pdbSmall.chain[k].align[int(x[i,1])].naccess=x[i,3]
-				#		end
-				#	end
-				#	catch
-				#		println("No naccess for RS$id !")
-				#	end
-				#	try
-				#	x=readdlm("/home/christoph/polito/ppi/data/FINAL_SMALL/naccess/RS$(id)_align_rel.rsa",' ')
-				#	for i=1:size(x,1)
-				#		if x[i,3]>0
-				#			pdbSmall.chain[k].align[int(x[i,1])].naccess_rel=x[i,3]
-				#		end
-				#	end
-				#	catch
-				#		println("No naccess for RS$id !")
-				#	end
-			end
-			println("Mapping Small Subunit, Chain A (RNA)")
-			mapChainToHmm(pdbSmall.chain["A"],"/home/christoph/polito/ppi/data/rna/RF00177.cm")
-			if !smallOnly
-			for k in keys(pdbLarge.chain)
-				if pdbLarge.chain[k].isRNA==true
-					continue
-				end
-				println("Mapping Large Subunit, chain $k")	
-				if haskey(invLargeRiboChainDict,k)
-					 id=invLargeRiboChainDict[k]
-				else
-				  	 println("Chain $k not in dictionary!")
-					 continue
-				end
-				mapFile="/home/christoph/polito/ppi/data/FINAL_LARGE/RALL/RL$id.fasta.names.blastdb.mafft.ungap.hmmbuild"
-				if !isfile(mapFile)
-					println("No mapfile for $k")
-					continue
-				end
-				if !legacyMapping
-					mapChainToHmm(pdbLarge.chain[k],mapFile)
-				else
-					mapChainToHmmLegacy(pdbLarge.chain[k],mapFile)
-				end
-			end
-			end
-		end
-		if blits
-			for ch in values(pdbSmall.chain)
-				ch.mappedTo="blits"
-				for res in values(ch.residue)
-					res.alignmentPos=res.pdbPos;
-					ch.align[res.alignmentPos]=res;
-				end
-			end
-		end
-	
-		if !smallOnly
-			return pdbSmall,pdbLarge;
-		else
-			return pdbSmall
-		end
-	end
-
-	function parseArchs()
-		pdbArch=Array(Dict{String,Pdb},9)
-		fid=open("/home/christoph/polito/ppi/data/gtpase/pdb/pdbList","r")
-		for line in eachline(fid)
-			id=int(match(r"^\d",line).match)
-			hmm="/home/christoph/polito/ppi/data/gtpase/arch$id/arch$id.names.blastdb.mafft.ungap.hmmbuild"
-			if id==3
-				hmm="/home/christoph/polito/ppi/data/gtpase/arch$id/arch$id.names.filtered.blastdb.mafft.ungap.hmmbuild"
-			end
-			!isfile(hmm) && continue
-			m=matchall(r"\d[A-Z,0-9]{3}",line)
-			pdbArch[id]=Dict{String,Pdb}()
-			for name in m
-				pdb=parsePdb("/home/christoph/polito/ppi/data/gtpase/pdb/pdb$(lowercase(name)).ent")
-				mapChainToHmm(pdb.chain["A"],hmm)
-				pdbArch[id][lowercase(name)]=pdb
-			end
-		end
-		return pdbArch
-	end
+#</module>
 end
 
