@@ -158,7 +158,7 @@ To get a distance matrix for the columns of a multiple sequence alignment corres
 ```
 julia>ind=sort([k for k in keys(pdb.chain["A"].align)]) # Collect indices
 julia>align=pdb.chain["A"].align; # Alias "align" 
-julia>distMat=[pdbTool.residueDist(align[k1],align[k2]) for k1 in ind, k2 in ind] # 2D comprehension 
+julia>[pdbTool.residueDist(align[k1],align[k2]) for k1 in ind, k2 in ind] # 2D comprehension 
 53x53 Array{Float64,2}:
  0.0      1.33243  …   3.68234   8.16824
  1.33243  0.0          2.04305   5.68643
