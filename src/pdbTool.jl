@@ -1,4 +1,32 @@
+# MIT License (MIT)
+# 
+# Copyright (c) 2015 Christoph Feinauer
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# For questions and suggestions please use the Github page https://github.com/christophfeinauer/pdbTool
+
 module pdbTool
+	
+	include("EXT_TEST.jl")
+	include("aminoAcidDict.jl")
+	using .EXT_TEST
 
 	######################################################################	
 	# TYPE DEFINITIONS
@@ -237,6 +265,7 @@ module pdbTool
 		ind=sortperm([chain.residue[k].pdbPos for k in keys(chain.residue)])
 		return join(pdbSeq[ind])
 	end
+
 	
 	######################################################################	
 	# FUNCTION:		 mapChainToHmm
@@ -254,19 +283,29 @@ module pdbTool
 		@printf(fid,">temp\n%s",pdbSeq)
 		close(fid)
 		if !chain.isRNA
+			if !EXT_TEST_hmmalign()
+				error("cannot run hmmalign - please check that it is on the path")
+			end
 			run(`hmmalign $hmmFile $tempFile` |> "$tempFile.out")
 		else
+			if !EXT_TEST_cmsearch()
+				error("cannot run cmsearch - please check that it is on the path")
+			end
 			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		end
-		st2fa(tempFile;oFile="$tempFile.out")
-		align=[split(readall(`cat $tempFile.out`),'\n')]	
+
+		st2fa("$tempFile.out";oFile=tempFile)
+		align=[split(readall(`cat $tempFile`),'\n')]	
+
 		rm("$tempFile")
 		rm("$tempFile.out")		
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
 		fakeAlign2pdb[pdbIndices]=[1:length(pdbSeq)]
 		align2pdb=fakeAlign2pdb[cleanIndices]
+
 		for k in keys(chain.residue)
 			if chain.residue[k].pdbPos > 0
 				x=find(align2pdb.==chain.residue[k].pdbPos)
@@ -286,7 +325,6 @@ module pdbTool
 	# FUNCTION:		 mapChainToHmmLegacy
 	######################################################################	
 	function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
-		println("LEGACY MAPPING ACTIVE")
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
 			println("chain $(chain.identifier) already has a mapping.")
@@ -299,12 +337,20 @@ module pdbTool
 		@printf(fid,">temp\n%s",pdbSeq)
 		close(fid)
 		if !chain.isRNA
+			if !EXT_TEST_hmmsearch()
+				error("cannot run hmmsearch - please check that it is on the path")
+			end
+
 			run(`hmmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		else
+			if !EXT_TEST_cmsearch()
+				error("cannot run cmsearch - please check that it is on the path")
+			end
+
 			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		end
-		st2fa(tempFile;oFile="$tempFile.out")
-		align=[split(readall(`cat $tempFile.out`),'\n')]	
+		st2fa("$tempFile.out";oFile=tempFile)
+		align=[split(readall(`cat $tempFile`),'\n')]	
 		rm("$tempFile")
 		rm("$tempFile.out")
 		(pdbStart,pdbStop)=int(matchall(r"\d+",align[1]))
@@ -659,7 +705,7 @@ module pdbTool
 	# FUNCTION:		 st2fa
 	######################################################################	
 	function st2fa(iFile;oFile="default") 
-		isfile(iFile) && error("File not found")
+		!isfile(iFile) && error("File not found")
 		if oFile=="default"
 			oFile="$iFile.st2fa"
 		end
