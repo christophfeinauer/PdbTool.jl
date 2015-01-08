@@ -23,7 +23,12 @@
 # For questions and suggestions please use the Github page https://github.com/christophfeinauer/pdbTool
 
 module pdbTool
-	
+
+	macro spath()
+	        return dirname(Base.source_path()) * "/"
+	end
+
+	include(@spath()*"../testall/"*"testall.jl")
 	include("EXT_TEST.jl")
 	include("aminoAcidDict.jl")
 	using .EXT_TEST
