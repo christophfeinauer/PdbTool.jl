@@ -27,7 +27,7 @@ and (for the function mapChainToHmmLegacy if you want to use it) `hmmsearch`
 on the path. Furthermore, if you want to backmap RNA chains you need `cmsearch`
 as well. 
 
-Everything has been tested with HMMER 3.1b1.
+Everything has been tested with HMMER 3.1b1 (see http://hmmer.janelia.org/ to get the newest version).
 
 Installation
 ------------

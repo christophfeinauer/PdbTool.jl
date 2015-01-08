@@ -300,7 +300,7 @@ module pdbTool
 		end
 
 		st2fa("$tempFile.out";oFile=tempFile)
-		align=[split(readall(`cat $tempFile`),'\n')]	
+		align=[split(readall(tempFile),'\n')]	
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
@@ -355,7 +355,7 @@ module pdbTool
 			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
 		end
 		st2fa("$tempFile.out";oFile=tempFile)
-		align=[split(readall(`cat $tempFile`),'\n')]	
+		align=[split(readall(tempFile),'\n')]	
 		rm("$tempFile")
 		rm("$tempFile.out")
 		(pdbStart,pdbStop)=int(matchall(r"\d+",align[1]))
