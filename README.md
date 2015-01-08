@@ -155,7 +155,7 @@ Notice that residues with `alignmentPos=-1` do not show up in the `align` collec
 
 To get a distance matrix for the columns of a multiple sequence alignment corresponding to the Hidden-Markov model you now just have to type
 
-``
+```
 julia>ind=sort([k for k in keys(pdb.chain["A"].align)]) # Collect indices in the align object
 julia>align=pdb.chain["A"].align; # Alias the object for easier access
 julia>distMat=[pdbTool.residueDist(align[k1],align[k2]) for k1 in ind, k2 in ind] # 2D comprehension to get the distances of all pairs
