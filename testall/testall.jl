@@ -9,7 +9,7 @@ end
 function TEST_parsePdb()
 	@printf("Testing parsePdb ...")
 	try
-		pdb=pdbTool.parsePdb(@spath() * "5PTI.pdb");
+		pdb=PdbTool.parsePdb(@spath() * "5PTI.pdb");
 		@printf("%s SUCCES%s\n",KGRN,KRES)
 	catch
 		@printf("%s FAIL (function exited with error)%s\n", KRED,KRES)
@@ -21,8 +21,8 @@ end
 function TEST_mapChainToHmm()
 	@printf("Testing mapChainToHmm ...")
 	try
-		pdb=pdbTool.parsePdb(@spath() * "5PTI.pdb");
-		pdbTool.mapChainToHmm(pdb.chain["A"],@spath() * "Kunitz_BPTI.hmm")
+		pdb=PdbTool.parsePdb(@spath() * "5PTI.pdb");
+		PdbTool.mapChainToHmm(pdb.chain["A"],@spath() * "Kunitz_BPTI.hmm")
 		@printf("%s SUCCESS %s\n",KGRN,KRES)
 	catch
 		@printf("%s FAIL (function exited with error) %s\n", KRED, KRES);
@@ -34,8 +34,8 @@ end
 function TEST_mapChainToHmmLegacy()
 	@printf("Testing mapChainToHmmLegacy ...")
 	try
-		pdb=pdbTool.parsePdb(@spath() * "5PTI.pdb");
-		pdbTool.mapChainToHmmLegacy(pdb.chain["A"],@spath() * "Kunitz_BPTI.hmm")
+		pdb=PdbTool.parsePdb(@spath() * "5PTI.pdb");
+		PdbTool.mapChainToHmmLegacy(pdb.chain["A"],@spath() * "Kunitz_BPTI.hmm")
 		@printf("%s SUCCESS\n%s",KGRN,KRES)
 	catch
 		@printf("%s FAIL (function exited with error) %s\n", KRED, KRES);
@@ -52,21 +52,21 @@ function TEST_externals()
 
 	@printf("Testing access to external functions ... \n")
 	@printf("\thmmalign ... ")
-	if !pdbTool.EXT_TEST.EXT_TEST_hmmalign()
+	if !PdbTool.EXT_TEST.EXT_TEST_hmmalign()
 		@printf("%s NOT AVAILABLE (mapChainToHmm will not work)%s\n", KRED, KRES);
 	else 
 		@printf("%s AVAILABLE\n%s",KGRN,KRES)
 	end
 
 	@printf("\thmmsearch ... ")
-	if !pdbTool.EXT_TEST.EXT_TEST_hmmsearch()
+	if !PdbTool.EXT_TEST.EXT_TEST_hmmsearch()
 		@printf("%s NOT AVAILABLE (mapChainToHmmLegacy will not work)%s\n", KRED, KRES);
 	else 
 		@printf("%s AVAILABLE\n%s",KGRN,KRES)
 	end
 
 	@printf("\tcmsearch ... ")
-	if !pdbTool.EXT_TEST.EXT_TEST_hmmsearch()
+	if !PdbTool.EXT_TEST.EXT_TEST_hmmsearch()
 		@printf("%s NOT AVAILABLE (mapping RNAs will not work)%s\n", KRED, KRES);
 	else 
 		@printf("%s AVAILABLE\n%s",KGRN,KRES)
@@ -100,7 +100,7 @@ end
 
 function testall()
 	if !TEST_all()
-		@printf("%s Stopped - if you cannot fix the problem please consider reporting to https://github.com/christophfeinauer/pdbTool/issues %s\n", KRED,KRES);
+		@printf("%s Stopped - if you cannot fix the problem please consider reporting to https://github.com/christophfeinauer/PdbTool/issues %s\n", KRED,KRES);
 	else
 		@printf("%sAll tests finished with success. %s", KGRN,KRES)
 	end

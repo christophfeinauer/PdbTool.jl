@@ -1,4 +1,4 @@
-pdbTool: An object-oriented Julia tool to parse PDB files and work with them
+PdbTool: An object-oriented Julia tool to parse PDB files and work with them
 =============================================================================
 
 Overview
@@ -35,13 +35,13 @@ Installation
 To install the package, use the command
 
 ```
-	julia>Pkg.clone("https://github.com/christophfeinauer/pdbTool")
+	julia>Pkg.clone("https://github.com/christophfeinauer/PdbTool")
 ```
 
 Alternatively, clone/download the repository and do a
 	
 ```
-	julia>include("REPO_DIR/src/pdbTool.jl")
+	julia>include("REPO_DIR/src/PdbTool.jl")
 ```
 
 whith REPO_DIR replaced with the direcrory you download the repository to.
@@ -53,13 +53,13 @@ Test the installation
 To test some major functions like the parser, the backmapper and the accessability of external functions, first run 
 
 ```
-julia>using pdbTool
+julia>using PdbTool
 ```
 
 and then
 
 ```
-julia>pdbTool.testall()
+julia>PdbTool.testall()
 ```
 
 Documentation
@@ -70,7 +70,7 @@ A real documentation is not available yet, but here are some usage examples to g
 Load the module:
 
 ```
-julia>using pdbTool
+julia>using PdbTool
 ```
 
 Now let us parse the PDB file `5PTI.pdb`. You can find it in the `./testall`
@@ -78,20 +78,20 @@ directory of the repository. Exchange `REPO_DIR` with the directory of the
 repository in the following command and run it:
 
 ```
-julia>pdb=pdbTool.parsePdb("REPO_DIR/testall/5PTI.pdb");
+julia>pdb=PdbTool.parsePdb("REPO_DIR/testall/5PTI.pdb");
 ```
 
 The object `pdb` contains collections of `Chain` objects, which contain
 collections of `Residue` objects, which contain collections of `Atom` objects.
 Notice the `;` at the end of the parsing command - if you forget it every object
-will be printed (may take minutes) because `pdbTool` does not contain good object printing
+will be printed (may take minutes) because `PdbTool` does not contain good object printing
 yet.
 
 To get the `Atom` object labeled with "N" in residue "10" of chain "A" type
 
 ```
 julia>pdb.chain["A"].residue["10"].atom["N"]
-pdbTool.Atom(154,(30.651,4.022,2.2))
+PdbTool.Atom(154,(30.651,4.022,2.2))
 ```
 
 Objects of type `Atom` have two values. The first, here 154, is the numerical identifier of the atom in the PDB file. The second are its coordinates. To get them as a tuple write
@@ -107,13 +107,13 @@ labeled e.g. with `10` and `10A`.
 To calculate the distance between the atom "N" and the atom "CA" in the same residue, type
 
 ```
-julia>pdbTool.atomDist(pdb.chain["A"].residue["10"].atom["N"],pdb.chain["A"].residue["10"].atom["CA"])
+julia>PdbTool.atomDist(pdb.chain["A"].residue["10"].atom["N"],pdb.chain["A"].residue["10"].atom["CA"])
 1.465626487206069
 ```
 
 To get the distance between residue "10" and "20", type
 ```
-julia>pdbTool.residueDist(pdb.chain["A"].residue["10"],pdb.chain["A"].residue["20"])
+julia>PdbTool.residueDist(pdb.chain["A"].residue["10"],pdb.chain["A"].residue["20"])
 6.790367515827108
 ```
 where as default the distance between the two closest heavy atoms in the residues is taken.
@@ -121,7 +121,7 @@ where as default the distance between the two closest heavy atoms in the residue
 To map the chain to the Hidden-Markov model `Kunitz_BPTI.hmm` you find in the `testall` directory type
 
 ```
-julia>pdbTool.mapChainToHmm(pdb.chain["A"],"REPO_DIR/testall/Kunitz_BPTI.hmm")
+julia>PdbTool.mapChainToHmm(pdb.chain["A"],"REPO_DIR/testall/Kunitz_BPTI.hmm")
 "REPO_DIR/testall/Kunitz_BPTI.hmm"
 ```
 
@@ -158,7 +158,7 @@ To get a distance matrix for the columns of a multiple sequence alignment corres
 ```
 julia>ind=sort([k for k in keys(pdb.chain["A"].align)]) # Collect indices
 julia>align=pdb.chain["A"].align; # Alias "align" 
-julia>[pdbTool.residueDist(align[k1],align[k2]) for k1 in ind, k2 in ind] 
+julia>[PdbTool.residueDist(align[k1],align[k2]) for k1 in ind, k2 in ind] 
 53x53 Array{Float64,2}:
  0.0      1.33243  …   3.68234   8.16824
  1.33243  0.0          2.04305   5.68643
