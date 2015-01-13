@@ -19,6 +19,21 @@ available. This identification is stored in the PDB object and can be used to
 directly work in the alignment representation, e.g. to calculate residue
 distances between alignment positions.
 
+If you're only interested in a mapping HMM <-> PDB and residue distances
+----------------------------------------------------------------------
+
+If your only goal is to get a mapping between an HMM and PDB residues (and
+optionally distances between the mapped residues), there is no need to use
+Julia or the module directly. For this, a simple-to-use script called
+`backmap.jl` is included in the repository. After installation of Julia and the
+module, call 
+```
+julia backmap.jl -h
+```
+from the command line to get usage instructions.
+The typical use case for this is if you want to get distances between positions
+in a Multiple Sequence Alignment made by the HMM.
+
 Dependencies
 ------------
 
