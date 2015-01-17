@@ -87,6 +87,7 @@ module PdbTool
 	        fileName::String
 	        Pdb()=new(Dict{String,Chain}(),"","")
 	end
+	include("show_methods.jl")
 
 	######################################################################	
 	# FUNCTION:		 parsePdb             	
