@@ -28,7 +28,7 @@ module PdbTool
 	        return dirname(Base.source_path()) * "/"
 	end
 
-	include(@spath()*"../testall/"*"testall.jl")
+	#include(@spath()*"../test/"*"runtests.jl")
 	include("EXT_TEST.jl")
 	include("aminoAcidDict.jl")
 	using .EXT_TEST
