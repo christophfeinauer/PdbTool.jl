@@ -2,6 +2,8 @@ KRED="\x1B[31m"
 KGRN="\x1B[32m"
 KRES="\033[0m"
 
+using PdbTool
+
 macro spath()
 	return dirname(Base.source_path()) * "/"
 end
@@ -106,4 +108,4 @@ function testall()
 	end
 end
 
-
+testall()
