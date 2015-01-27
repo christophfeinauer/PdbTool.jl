@@ -74,7 +74,7 @@ julia>using PdbTool
 and then
 
 ```
-julia>PdbTool.testall()
+julia>Pkg.test("PdbTool")
 ```
 
 Documentation
