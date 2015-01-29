@@ -570,7 +570,7 @@ module PdbTool
 		end
 
 		if out=="return"
-			roc=Array((String,String,Float64,Float64),sz)
+			roc=Array((String,String,Float64,Float64),0)
 			s::Int64=0
 			i::Int64=0
 			hits::Int64=0
@@ -600,12 +600,12 @@ module PdbTool
 						if pymolMode
 							hits=s
 						end
-						roc[s]=(id1,id2,hits/s,score[i][3])
+						push!(roc,(id1,id2,hits/s,score[i][3]))
 					else
 						if pymolMode
 							hits=0
 						end
-						roc[s]=(id1,id2,hits/s,score[i][3])
+						push!(roc,(id1,id2,hits/s,score[i][3]))
 					end
 				end
 			end
