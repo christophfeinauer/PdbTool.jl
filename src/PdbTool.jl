@@ -28,6 +28,10 @@ module PdbTool
 	        return dirname(Base.source_path()) * "/"
 	end
 
+	KRED="\x1B[31m"
+	KGRN="\x1B[32m"
+	KRES="\033[0m"
+
 	#include(@spath()*"../test/"*"runtests.jl")
 	include("EXT_TEST.jl")
 	include("aminoAcidDict.jl")
