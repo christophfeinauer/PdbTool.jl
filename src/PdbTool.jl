@@ -421,14 +421,14 @@ module PdbTool
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array((String,String,Float64,Float64),sz)
+			roc=Array((String,String,Float64,Float64),0)
 		else
-			roc=Array((String,String,Int64),sz)
+			roc=Array((String,String,Int64,Float64),0)
 		end
 			s::Int64=0
 			i::Int64=0
 			hits::Int64=0
-			while s<sz
+			while s<sz && i<length(score)
 				i+=1
 				if abs(score[i][1]-score[i][2]) <= minSeparation 
 					continue
@@ -448,7 +448,7 @@ module PdbTool
 							x=0
 						end
 					end
-					roc[s]=(chain.align[score[i][1]].identifier,chain.align[score[i][2]].identifier,x,score[i][3])
+					push!(roc,(chain.align[score[i][1]].identifier,chain.align[score[i][2]].identifier,x,score[i][3]))
 				end
 			end
 		return roc
