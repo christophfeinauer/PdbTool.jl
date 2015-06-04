@@ -98,9 +98,6 @@ julia>pdb=PdbTool.parsePdb("REPO_DIR/testall/5PTI.pdb");
 
 The object `pdb` contains collections of `Chain` objects, which contain
 collections of `Residue` objects, which contain collections of `Atom` objects.
-Notice the `;` at the end of the parsing command - if you forget it every object
-will be printed (may take minutes) because `PdbTool` does not contain good object printing
-yet.
 
 To get the `Atom` object labeled with "N" in residue "10" of chain "A" type
 
