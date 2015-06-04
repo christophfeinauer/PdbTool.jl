@@ -42,7 +42,7 @@ module PdbTool
 	######################################################################	
 	type Atom
 	        identifier::Int64
-		coordinates::(Float64,Float64,Float64)
+		coordinates::Tuple{Float64,Float64,Float64}
 	end
 	type Residue
 		aminoAcid::String
@@ -115,7 +115,7 @@ module PdbTool
 					pdb.chain[ch].length += 1
 					pdb.chain[ch].residue[res]=Residue(l[18:20],pdb.chain[ch].length,res)
 				end
-				pdb.chain[ch].residue[res].atom[strip(l[13:16])]=Atom(int(l[7:11]),(float(l[31:38]),float(l[39:46]),float(l[47:54])))
+				pdb.chain[ch].residue[res].atom[strip(l[13:16])]=Atom(parse(Int,l[7:11]),(parse(Float64,l[31:38]),parse(Float64,l[39:46]),parse(Float64,l[47:54])))
 				if pdb.chain[ch].isRNA
 					for res in values(pdb.chain[ch].residue)
 						res.aminoAcid=lstrip(res.aminoAcid)
@@ -147,7 +147,7 @@ module PdbTool
 				end
 				ch=strip(l[22:22])
 				sh=strip(l[12:14])
-				str=int(strip(l[8:10]))
+				str=parse(Int64,strip(l[8:10]))
 				if !haskey(pdb.chain,ch)
 					pdb.chain[ch]=Chain()
 					pdb.chain[ch].identifier=ch
@@ -162,7 +162,7 @@ module PdbTool
 				if haskey(pdb.chain[ch].sheet[sh].strand,str)
 					error("Found the same strand twice and panicked")
 				end
-				sense=int(l[39:40])
+				sense=parse(Int64,l[39:40])
 				if sense!=0
 					pdb.chain[ch].sheet[sh].strand[str]=Strand(str,strip(l[23:27]),strip(l[34:38]),sense,strip(l[51:55]),strip(l[66:70]))
 				else
@@ -363,7 +363,7 @@ module PdbTool
 		align=[split(readall(tempFile),'\n')]	
 		rm("$tempFile")
 		rm("$tempFile.out")
-		(pdbStart,pdbStop)=int(matchall(r"\d+",align[1]))
+		(pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1]))
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
@@ -413,7 +413,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 makeIntraRoc
 	######################################################################	
-	function makeIntraRoc(score::Array{(Int64,Int64,Float64),1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+	function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
 		if chain.mappedTo==""
 			error("chain has no mapping")
 		end
@@ -457,7 +457,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 filterInterScore
 	######################################################################	
-	function filterInterScore(score::Array{(Int64,Int64,Float64),1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
+	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -495,7 +495,7 @@ module PdbTool
 			return newScore
 		end
 	end
-	function filterInterScore(score::Array{(Int64,Int64,Float64),1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
+	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
 
 		# Check if mapping is existent
 		LENG1=getHmmLength(hmm1)	
@@ -540,7 +540,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 makeInterRoc
 	######################################################################	
-	function makeInterRoc(score::Array{(Int64,Int64,Float64),1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+	function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -566,10 +566,10 @@ module PdbTool
 				i+=1;
 			end
 			naList1=sort(naList1,rev=true);
-			na1Cutoff=naList1[int(round(LENG1*naccessRatio))];
+			na1Cutoff=naList1[parse(Int64,round(LENG1*naccessRatio))];
 			println(na1Cutoff)
 			naList2=sort(naList2,rev=true);
-			na2Cutoff=naList2[int(round(LENG2*naccessRatio))];
+			na2Cutoff=naList2[parse(Int64,round(LENG2*naccessRatio))];
 			println(na2Cutoff)
 		end
 
@@ -624,7 +624,7 @@ module PdbTool
 		!isfile(hmmFile) && error("File not readable")
 		for l in eachline(open(hmmFile))
 			if l[1:4] == "LENG" || l[1:4]=="CLEN"
-				LENG::Int64=int(match(r"\d+",l).match)
+				LENG=parse(Int64,match(r"\d+",l).match)
 				return LENG
 			end
 		end
