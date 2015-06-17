@@ -421,9 +421,9 @@ module PdbTool
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array((String,String,Float64,Float64),0)
+			roc=Array(Tuple{String,String,Float64,Float64},0)
 		else
-			roc=Array((String,String,Int64,Float64),0)
+			roc=Array(Tuple{String,String,Int64,Float64},0)
 		end
 			s::Int64=0
 			i::Int64=0
@@ -502,9 +502,9 @@ module PdbTool
 		LENG2=getHmmLength(hmm2)
 
 		if out=="return"
-			interScore=Array((Int64,Int64,Float64),0)
-			score1=Array((Int64,Int64,Float64),0)
-			score2=Array((Int64,Int64,Float64),0)
+			interScore=Array(Tuple{Int64,Int64,Float64},0)
+			score1=Array(Tuple{Int64,Int64,Float64},0)
+			score2=Array(Tuple{Int64,Int64,Float64},0)
 
 			s::Int64=0
 			i::Int64=0
