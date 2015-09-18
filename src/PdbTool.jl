@@ -23,6 +23,7 @@
 # For questions and suggestions please use the Github page https://github.com/christophfeinauer/PdbTool
 
 module PdbTool
+using Compat
 
 	macro spath()
 	        return dirname(Base.source_path()) * "/"
@@ -42,7 +43,7 @@ module PdbTool
 	######################################################################	
 	type Atom
 	        identifier::Int64
-		coordinates::Tuple{Float64,Float64,Float64}
+		@compat coordinates::Tuple{Float64,Float64,Float64}
 	end
 	type Residue
 		aminoAcid::String
@@ -413,7 +414,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 makeIntraRoc
 	######################################################################	
-	function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+	@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
 		if chain.mappedTo==""
 			error("chain has no mapping")
 		end
@@ -457,7 +458,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 filterInterScore
 	######################################################################	
-	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
+	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -495,7 +496,7 @@ module PdbTool
 			return newScore
 		end
 	end
-	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
+	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
 
 		# Check if mapping is existent
 		LENG1=getHmmLength(hmm1)	
@@ -540,7 +541,7 @@ module PdbTool
 	######################################################################	
 	# FUNCTION:		 makeInterRoc
 	######################################################################	
-	function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+	@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
