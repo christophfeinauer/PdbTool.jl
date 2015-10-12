@@ -4,7 +4,7 @@
 ######################################################################
 
 #http://www.uniprot.org/manual/non_std;Selenocysteine (Sec) and pyrrolysine (Pyl)
-aminoAcidDict=Dict{String,String}()
+aminoAcidDict=Dict{AbstractString,AbstractString}()
 aminoAcidDict["ALA"]="A";
 aminoAcidDict["ARG"]="R";
 aminoAcidDict["ASN"]="N";

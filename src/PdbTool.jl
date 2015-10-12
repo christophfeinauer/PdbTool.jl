@@ -46,58 +46,58 @@ using Compat
 		@compat coordinates::Tuple{Float64,Float64,Float64}
 	end
 	type Residue
-		aminoAcid::String
-	        atom::Dict{String,Atom}
+		aminoAcid::AbstractString
+	        atom::Dict{AbstractString,Atom}
 		pdbPos::Int64
 		alignmentPos::Int64
-		identifier::String
+		identifier::AbstractString
 		naccess::Float64
 		naccess_rel::Float64
-		Residue(aa,pp,id)=new(aa,Dict{String,Atom}(),pp,-1,id,-1.0,-1.0)
+		Residue(aa,pp,id)=new(aa,Dict{AbstractString,Atom}(),pp,-1,id,-1.0,-1.0)
 	end
 	type Strand
 		identifier::Int64
-		startRes::String
-		endRes::String
+		startRes::AbstractString
+		endRes::AbstractString
 		sense::Int64
-		bondThis::String
-		bondPrev::String
-		Strand(identifier::Int64,startRes::String,endRes::String,sense::Int64,bondThis::String,bondPrev::String)=new(identifier::Int64,startRes::String,endRes::String,sense::Int64,bondThis::String,bondPrev::String)
+		bondThis::AbstractString
+		bondPrev::AbstractString
+		Strand(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)
 	end
 	type Sheet
-		identifier::String
+		identifier::AbstractString
 		strand::Dict{Int64,Strand}
-		Sheet(identifier::String)=new(identifier,Dict{Int64,Strand}())
+		Sheet(identifier::AbstractString)=new(identifier,Dict{Int64,Strand}())
 	end
 	type Helix
-		startRes::String
-		endRes::String
-		identifier::String
+		startRes::AbstractString
+		endRes::AbstractString
+		identifier::AbstractString
 		Helix(sR,eR,id)=new(sR,eR,id)
 	end
 	type Chain
-	        residue::Dict{String,Residue}
+	        residue::Dict{AbstractString,Residue}
 	        length::Int64
-		mappedTo::String
-		identifier::String
+		mappedTo::AbstractString
+		identifier::AbstractString
 		align::Dict{Int64,Residue}
-		helix::Dict{String,Helix}
-		sheet::Dict{String,Sheet}
+		helix::Dict{AbstractString,Helix}
+		sheet::Dict{AbstractString,Sheet}
 		isRNA::Bool
-	        Chain()=new(Dict{String,Residue}(),0,"","",Dict{Int64,Residue}(),Dict{String,Helix}(),Dict{String,Sheet}(),false)
+	        Chain()=new(Dict{AbstractString,Residue}(),0,"","",Dict{Int64,Residue}(),Dict{AbstractString,Helix}(),Dict{AbstractString,Sheet}(),false)
 	end
 	type Pdb
-	        chain::Dict{String,Chain}
-	        pdbName::String
-	        fileName::String
-	        Pdb()=new(Dict{String,Chain}(),"","")
+	        chain::Dict{AbstractString,Chain}
+	        pdbName::AbstractString
+	        fileName::AbstractString
+	        Pdb()=new(Dict{AbstractString,Chain}(),"","")
 	end
 	include("show_methods.jl")
 
 	######################################################################	
 	# FUNCTION:		 parsePdb             	
 	######################################################################	
-	function parsePdb(pdbFile::String)
+	function parsePdb(pdbFile::AbstractString)
 		!isfile(pdbFile) && error("File not found")
 		pdb=Pdb()
 		for l in eachline(open(pdbFile))
@@ -281,7 +281,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 mapChainToHmm
 	######################################################################	
-	function mapChainToHmm(chain::Chain,hmmFile::String)
+	function mapChainToHmm(chain::Chain,hmmFile::AbstractString)
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
 			println("chain $(chain.identifier) already has a mapping.")
@@ -335,7 +335,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 mapChainToHmmLegacy
 	######################################################################	
-	function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
+	function mapChainToHmmLegacy(chain::Chain,hmmFile::AbstractString)
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
 			println("chain $(chain.identifier) already has a mapping.")
@@ -414,7 +414,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 makeIntraRoc
 	######################################################################	
-	@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+	@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,minSeparation::Int64=4)
 		if chain.mappedTo==""
 			error("chain has no mapping")
 		end
@@ -422,9 +422,9 @@ using Compat
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array(Tuple{String,String,Float64,Float64},0)
+			roc=Array(Tuple{AbstractString,AbstractString,Float64,Float64},0)
 		else
-			roc=Array(Tuple{String,String,Int64,Float64},0)
+			roc=Array(Tuple{AbstractString,AbstractString,Int64,Float64},0)
 		end
 			s::Int64=0
 			i::Int64=0
@@ -458,7 +458,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 filterInterScore
 	######################################################################	
-	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
+	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -470,7 +470,7 @@ using Compat
 		LENG2=getHmmLength(chain2.mappedTo)
 
 		if out=="return"
-			newScore=Array((String,String,Float64),sz)
+			newScore=Array((AbstractString,AbstractString,Float64),sz)
 			s::Int64=0
 			i::Int64=0
 			hits::Int64=0
@@ -496,7 +496,7 @@ using Compat
 			return newScore
 		end
 	end
-	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
+	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::AbstractString,hmm2::AbstractString;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
 
 		# Check if mapping is existent
 		LENG1=getHmmLength(hmm1)	
@@ -541,7 +541,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 makeInterRoc
 	######################################################################	
-	@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+	@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -575,7 +575,7 @@ using Compat
 		end
 
 		if out=="return"
-			roc=Array((String,String,Float64,Float64),0)
+			roc=Array((AbstractString,AbstractString,Float64,Float64),0)
 			s::Int64=0
 			i::Int64=0
 			hits::Int64=0
@@ -621,7 +621,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 getHmmLength
 	######################################################################	
-	function getHmmLength(hmmFile::String)
+	function getHmmLength(hmmFile::AbstractString)
 		!isfile(hmmFile) && error("File not readable")
 		for l in eachline(open(hmmFile))
 			if l[1:4] == "LENG" || l[1:4]=="CLEN"
@@ -636,7 +636,7 @@ using Compat
 	# FUNCTION:		 makeMarriedContactMap
 	######################################################################	
 	## IDIOCY: THIS DOES THE SAME THING AS THE FUNCTION "interAlignDist"
-	function makeMarriedContactMap(chain1::Chain,chain2::Chain;output::String="default")
+	function makeMarriedContactMap(chain1::Chain,chain2::Chain;output::AbstractString="default")
 		chain1map=chain1.mappedTo
 		chain2map=chain2.mappedTo
 		chain1map=="" && error("chain $(chain1.identifier) has no mapping")
@@ -722,7 +722,7 @@ using Compat
 		end
 		iFid=open(iFile,"r")
 		oFid=open(oFile,"w")
-		seqDict=Dict{String,String}()
+		seqDict=Dict{AbstractString,AbstractString}()
 		for line in eachline(iFid)
 			line[1]=='#' && continue
 			s=split(line)
@@ -744,10 +744,10 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 fasta2seqDict
 	######################################################################	
-	function fasta2seqDict(iFile::String)
+	function fasta2seqDict(iFile::AbstractString)
 		!isfile(iFile) && error("File not found")
 		iFid=open(iFile,"r")
-		seqDict=Dict{String,String}()
+		seqDict=Dict{AbstractString,AbstractString}()
 		for head in eachline(iFid)
 			( head[1]!='>' || eof(iFid) ) && error("Fasta not readable")
 			seq=readline(iFid)
@@ -768,7 +768,7 @@ using Compat
 		pdbPairs=0;
 		alignmentPairs=0;
 		if !numbersOnly
-			iS=Array((String,String),0)
+			iS=Array((AbstractString,AbstractString),0)
 		end
 		for r1 in values(chain1.residue)
 			for r2 in values(chain2.residue)
