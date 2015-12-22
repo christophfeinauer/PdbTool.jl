@@ -297,16 +297,17 @@ using Compat
 			if !EXT_TEST_hmmalign()
 				error("cannot run hmmalign - please check that it is on the path")
 			end
-			run(`hmmalign $hmmFile $tempFile` |> "$tempFile.out")
+                    @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 		else
 			if !EXT_TEST_cmsearch()
 				error("cannot run cmsearch - please check that it is on the path")
 			end
-			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
+                    
+                    @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,DevNull))
 		end
 
 		st2fa("$tempFile.out";oFile=tempFile)
-		align=[split(readall(tempFile),'\n')]	
+	        @compat align=collect(split(readall(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
@@ -314,7 +315,7 @@ using Compat
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
 
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
-		fakeAlign2pdb[pdbIndices]=[1:length(pdbSeq)]
+		@compat fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
 		align2pdb=fakeAlign2pdb[cleanIndices]
 
 		for k in keys(chain.residue)
@@ -351,14 +352,13 @@ using Compat
 			if !EXT_TEST_hmmsearch()
 				error("cannot run hmmsearch - please check that it is on the path")
 			end
-
-			run(`hmmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
+                    @compat run(pipeline(`hmmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))                    
 		else
 			if !EXT_TEST_cmsearch()
 				error("cannot run cmsearch - please check that it is on the path")
 			end
-
-			run(`cmsearch -A $tempFile.out $hmmFile $tempFile` |> DevNull)
+		    @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))
+                    
 		end
 		st2fa("$tempFile.out";oFile=tempFile)
 		align=[split(readall(tempFile),'\n')]	

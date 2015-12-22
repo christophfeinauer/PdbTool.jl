@@ -1,5 +1,5 @@
 module EXT_TEST
-
+using Compat
 export EXT_TEST_hmmalign
 export EXT_TEST_hmmsearch
 export EXT_TEST_cmsearch
@@ -9,7 +9,7 @@ export EXT_TEST_cmsearch
 ######################################################################
 function EXT_TEST_hmmalign()
 	try
-		run(`hmmalign -h` |> DevNull)
+@compat		run(pipeline(`hmmalign -h`, DevNull))
 	catch	
 		return false
 	end
@@ -21,7 +21,7 @@ end
 ######################################################################
 function EXT_TEST_hmmsearch()
 	try
-		run(`hmmsearch -h` |> DevNull)
+@compat		run(pipeline(`hmmsearch -h`, DevNull))
 	catch	
 		return false
 	end
@@ -33,7 +33,7 @@ end
 ######################################################################
 function EXT_TEST_cmsearch()
 	try
-		run(`cmsearch -h` |> DevNull)
+@compat		run(pipeline(`cmsearch -h`, DevNull))
 	catch	
 		return false
 	end
