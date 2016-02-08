@@ -763,7 +763,7 @@ using Compat
 	######################################################################	
 	function interactionSurface(chain1,chain2;numbersOnly::Bool=true,alignedOnly::Bool=true,cutoff::Float64=8.0)
 		if chain1.mappedTo=="" || chain2.mappedTo==""
-			error("At least one chain not mapped")
+			return interactionSurface_unmapped(chain1,chain2;numbersOnly=numbersOnly,cutoff=cutoff)
 		end
 		pdbPairs=0;
 		alignmentPairs=0;
@@ -794,6 +794,29 @@ using Compat
 		end
 						
 	end
+	function interactionSurface_unmapped(chain1,chain2;numbersOnly::Bool=true,cutoff::Float64=8.0)
+		pdbPairs=0;
+		if !numbersOnly
+			iS=Array((String,String),0)
+		end
+		for r1 in values(chain1.residue)
+			for r2 in values(chain2.residue)
+				if residueDist(r1,r2)<cutoff
+					pdbPairs+=1;
+					if !numbersOnly
+						push!(iS,(r1.identifier,r2.identifier))
+					end
+				end
+			end
+		end
+		if numbersOnly
+			return pdbPairs
+		else
+			return iS
+		end
+						
+	end
+
 
 
 #</module>
