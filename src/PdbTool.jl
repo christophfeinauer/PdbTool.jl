@@ -575,7 +575,7 @@ using Compat
 		end
 
 		if out=="return"
-			roc=Array((AbstractString,AbstractString,Float64,Float64),0)
+			roc=Array(Tuple{AbstractString,AbstractString,Float64,Float64},0)
 			s::Int64=0
 			i::Int64=0
 			hits::Int64=0
