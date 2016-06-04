@@ -334,6 +334,41 @@ using Compat
 	end
 
 	######################################################################	
+	# FUNCTION:		 mapSeqToHmm
+	######################################################################	
+	function mapSeqToHmm(seq::AbstractString,hmmFile::AbstractString)
+		
+		# Actual mapping
+		tempFile=tempname()
+		fid=open(tempFile,"w")
+		@printf(fid,">temp\n%s",seq)
+		close(fid)
+		if !EXT_TEST_hmmalign()
+			error("cannot run hmmalign - please check that it is on the path")
+		end
+                @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+
+		st2fa("$tempFile.out";oFile=tempFile)
+	        @compat align=collect(split(readall(tempFile),'\n'))
+
+		rm("$tempFile")
+		rm("$tempFile.out")		
+		seqIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
+		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+
+		fakeAlign2seq=-ones(Int64,length(align[2]))
+		@compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
+		align2seq=fakeAlign2seq[cleanIndices]
+		
+		hmm2seq = Dict{Int64,Int64}()
+		for (hmm_ind,seq_ind) in enumerate(align2seq)
+			seq_ind == -1 && continue
+			hmm2seq[hmm_ind] = seq_ind
+		end
+		return hmm2seq
+	end
+
+	######################################################################	
 	# FUNCTION:		 mapChainToHmmLegacy
 	######################################################################	
 	function mapChainToHmmLegacy(chain::Chain,hmmFile::AbstractString)
