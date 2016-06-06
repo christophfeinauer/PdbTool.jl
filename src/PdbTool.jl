@@ -334,6 +334,29 @@ using Compat
 	end
 
 	######################################################################	
+	# FUNCTION:		 alignSeqToHmm
+	######################################################################	
+	function alignSeqToHmm(seq::AbstractString,hmmFile::AbstractString)
+		
+		# Actual mapping
+		tempFile=tempname()
+		fid=open(tempFile,"w")
+		@printf(fid,">temp\n%s",seq)
+		close(fid)
+		if !EXT_TEST_hmmalign()
+			error("cannot run hmmalign - please check that it is on the path")
+		end
+                @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+
+		st2fa("$tempFile.out";oFile=tempFile)
+	        @compat align=collect(split(readall(tempFile),'\n'))
+
+		rm("$tempFile")
+		rm("$tempFile.out")		
+		return filter(x->!islower(x),align[2])
+	end
+
+	######################################################################	
 	# FUNCTION:		 mapSeqToHmm
 	######################################################################	
 	function mapSeqToHmm(seq::AbstractString,hmmFile::AbstractString)
