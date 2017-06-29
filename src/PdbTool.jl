@@ -170,7 +170,7 @@ using Compat
 					pdb.chain[ch].sheet[sh].strand[str]=Strand(str,strip(l[23:27]),strip(l[34:38]),sense,"","")
 				end
 			end
-					
+			if strip(l) == "END" return pdb end
 		end
 		return pdb;
 	end
