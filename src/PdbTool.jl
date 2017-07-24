@@ -101,7 +101,7 @@ using Compat
 		!isfile(pdbFile) && error("File not found")
 		pdb=Pdb()
 		for l in eachline(open(pdbFile))
-			if l[1:4]=="ATOM" && (l[17]==' ' || l[17]=='A')
+			if startswith(l, "ATOM") && (l[17]==' ' || l[17]=='A')
 				ch=strip(l[22:22])
 				res=strip(l[23:27])
 				if !haskey(pdb.chain,ch)
@@ -125,7 +125,7 @@ using Compat
 
 				
 			end
-			if l[1:5]=="HELIX"
+			if startswith(l, "HELIX")
 				ch=strip(l[20:20])
 				hel=strip(l[12:14])
 				if !haskey(pdb.chain,ch)
@@ -141,7 +141,7 @@ using Compat
 				end
 				pdb.chain[ch].helix[hel]=Helix(strip(l[22:26]),strip(l[34:38]),hel)
 			end
-			if l[1:5]=="SHEET"
+			if startswith(l, "SHEET")
 				if l[22:22]!=l[33:33]
 					warn("PDB contains sheets across several chains - ignoring them for now!")
 					continue
@@ -170,7 +170,7 @@ using Compat
 					pdb.chain[ch].sheet[sh].strand[str]=Strand(str,strip(l[23:27]),strip(l[34:38]),sense,"","")
 				end
 			end
-					
+			if strip(l) == "END" return pdb end
 		end
 		return pdb;
 	end
