@@ -307,12 +307,12 @@ using Compat
 		end
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readall(tempFile),'\n'))
+	        align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+		cleanIndices=find(.![islower(align[2][x]) for x=1:length(align[2])])
 
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
 		@compat fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
@@ -480,9 +480,9 @@ using Compat
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array(Tuple{AbstractString,AbstractString,Float64,Float64},0)
+			roc=Array{Tuple{AbstractString,AbstractString,Float64,Float64}}(0)
 		else
-			roc=Array(Tuple{AbstractString,AbstractString,Int64,Float64},0)
+			roc=Array{Tuple{AbstractString,AbstractString,Int64,Float64}}(0)
 		end
 			s::Int64=0
 			i::Int64=0
@@ -781,7 +781,7 @@ using Compat
 		iFid=open(iFile,"r")
 		oFid=open(oFile,"w")
 		seqDict=Dict{AbstractString,AbstractString}()
-		for line in eachline(iFid)
+		for line in eachline(iFid,chomp=false)
 			line[1]=='#' && continue
 			s=split(line)
 			length(s)!=2 && continue
