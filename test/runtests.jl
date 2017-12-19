@@ -59,7 +59,7 @@ function TEST_externals()
 	else 
 		@printf("%s AVAILABLE\n%s",KGRN,KRES)
 	end
-
+        # FIXME!!!
 	# @printf("\thmmsearch ... ")
 	# if !PdbTool.EXT_TEST.EXT_TEST_hmmsearch()
 	# 	@printf("%s NOT AVAILABLE (mapChainToHmmLegacy will not work)%s\n", KRED, KRES);
@@ -93,7 +93,7 @@ function TEST_all()
 		return false
 	end
 
-	# if !TEST_mapChainToHmmLegacy()
+	# if !TEST_mapChainToHmmLegacy() #FIXME!
 	# 	return false
 	# end
 
