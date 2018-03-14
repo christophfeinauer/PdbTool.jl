@@ -42,7 +42,13 @@ and (for the function mapChainToHmmLegacy if you want to use it) `hmmsearch`
 on the path. Furthermore, if you want to backmap RNA chains you need `cmsearch`
 as well. 
 
-Everything has been tested with HMMER 3.1b1 (see http://hmmer.janelia.org/ to get the newest version).
+Everything has been tested with HMMER 3.1b1, and 3.1b2 (see http://hmmer.janelia.org/ to get the newest version).
+
+Compatibility
+-------------
+
+v0.1.0 can be run with julia 0.4 and julia 0.5
+v0.2.0 now supports julia version 0.6
 
 Installation
 ------------
@@ -88,12 +94,12 @@ Load the module:
 julia>using PdbTool
 ```
 
-Now let us parse the PDB file `5PTI.pdb`. You can find it in the `./testall`
+Now let us parse the PDB file `5PTI.pdb`. You can find it in the `./test`
 directory of the repository. Exchange `REPO_DIR` with the directory of the
 repository in the following command and run it:
 
 ```
-julia>pdb=PdbTool.parsePdb("REPO_DIR/testall/5PTI.pdb");
+julia>pdb=PdbTool.parsePdb("REPO_DIR/test/5PTI.pdb");
 ```
 
 The object `pdb` contains collections of `Chain` objects, which contain
@@ -130,11 +136,11 @@ julia>PdbTool.residueDist(pdb.chain["A"].residue["10"],pdb.chain["A"].residue["2
 ```
 where as default the distance between the two closest heavy atoms in the residues is taken.
 
-To map the chain to the Hidden-Markov model `Kunitz_BPTI.hmm` you find in the `testall` directory type
+To map the chain to the Hidden-Markov model `Kunitz_BPTI.hmm` you find in the `test` directory type
 
 ```
-julia>PdbTool.mapChainToHmm(pdb.chain["A"],"REPO_DIR/testall/Kunitz_BPTI.hmm")
-"REPO_DIR/testall/Kunitz_BPTI.hmm"
+julia>PdbTool.mapChainToHmm(pdb.chain["A"],"REPO_DIR/test/Kunitz_BPTI.hmm")
+"REPO_DIR/test/Kunitz_BPTI.hmm"
 ```
 
 The residue "10" in chain "A" now has been identified with a position in the Hidden-Markov model:

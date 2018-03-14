@@ -307,15 +307,15 @@ using Compat
 		end
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readall(tempFile),'\n'))
+	        align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+	        cleanIndices=find(.![islower(align[2][x]) for x=1:length(align[2])])
 
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
-		@compat fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
+		fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
 		align2pdb=fakeAlign2pdb[cleanIndices]
 
 		for k in keys(chain.residue)
@@ -394,7 +394,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 mapChainToHmmLegacy
 	######################################################################	
-	function mapChainToHmmLegacy(chain::Chain,hmmFile::AbstractString)
+	function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
 		# Check if the chain already has a mapping - and delete it if yes
 		if chain.mappedTo!=""
 			println("chain $(chain.identifier) already has a mapping.")
@@ -410,19 +410,19 @@ using Compat
 			if !EXT_TEST_hmmsearch()
 				error("cannot run hmmsearch - please check that it is on the path")
 			end
-                    @compat run(pipeline(`hmmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))                    
+                    run(pipeline(`hmmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))                    
 		else
 			if !EXT_TEST_cmsearch()
 				error("cannot run cmsearch - please check that it is on the path")
 			end
-		    @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))
+		    run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))
                     
 		end
 		st2fa("$tempFile.out";oFile=tempFile)
-		align=[split(readall(tempFile),'\n')]	
+		align=split(readstring(tempFile),'\n')
 		rm("$tempFile")
 		rm("$tempFile.out")
-		(pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1]))
+		(pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1])[1])
 		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
 		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
@@ -480,9 +480,9 @@ using Compat
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array(Tuple{AbstractString,AbstractString,Float64,Float64},0)
+			roc=Array{Tuple{AbstractString,AbstractString,Float64,Float64}}(0)
 		else
-			roc=Array(Tuple{AbstractString,AbstractString,Int64,Float64},0)
+			roc=Array{Tuple{AbstractString,AbstractString,Int64,Float64}}(0)
 		end
 			s::Int64=0
 			i::Int64=0
@@ -781,7 +781,7 @@ using Compat
 		iFid=open(iFile,"r")
 		oFid=open(oFile,"w")
 		seqDict=Dict{AbstractString,AbstractString}()
-		for line in eachline(iFid)
+		for line in eachline(iFid,chomp=false)
 			line[1]=='#' && continue
 			s=split(line)
 			length(s)!=2 && continue
