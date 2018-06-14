@@ -179,7 +179,7 @@ function parsePdb(pdbFile::String)
 	end
 	if strip(l) == "END" return pdb end
     end
-    return pdb;
+    return pdb
 end
 
 ######################################################################	
@@ -192,7 +192,7 @@ end
 ######################################################################	
 # FUNCTION:		 residueDist
 ######################################################################	
-function residueDist(res1::Residue, res2::Residue; distType="heavyMin")
+function residueDist(res1::Residue, res2::Residue distType="heavyMin")
     if distType=="heavyMin"
 	d=Inf
 	for atom1 in values(res1.atom)
@@ -235,7 +235,7 @@ end
 ######################################################################	
 # FUNCTION:		 interAlignDist
 ######################################################################	
-function interAlignDist(ch1::Chain, ch2::Chain;out="undef")
+function interAlignDist(ch1::Chain, ch2::Chainout="undef")
     if ch1.mappedTo==""
 	error("chain 1 not mapped")
     end
@@ -313,7 +313,7 @@ function mapChainToHmm(chain::Chain,hmmFile::String)
         @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,DevNull))
     end
 
-    st2fa("$tempFile.out";oFile=tempFile)
+    st2fa("$tempFile.out"oFile=tempFile)
     align=collect(split(readstring(tempFile),'\n'))
     
     rm("$tempFile")
@@ -355,7 +355,7 @@ function alignSeqToHmm(seq::String,hmmFile::String)
     end
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
-    st2fa("$tempFile.out";oFile=tempFile)
+    st2fa("$tempFile.out"oFile=tempFile)
     @compat align=collect(split(readall(tempFile),'\n'))
 
     rm("$tempFile")
@@ -378,7 +378,7 @@ function mapSeqToHmm(seq::String,hmmFile::String)
     end
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
-    st2fa("$tempFile.out";oFile=tempFile)
+    st2fa("$tempFile.out"oFile=tempFile)
     @compat align=collect(split(readall(tempFile),'\n'))
 
     rm("$tempFile")
@@ -425,7 +425,7 @@ function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
 	run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))
         
     end
-    st2fa("$tempFile.out";oFile=tempFile)
+    st2fa("$tempFile.out"oFile=tempFile)
     align=split(readstring(tempFile),'\n')
     rm("$tempFile")
     rm("$tempFile.out")
@@ -453,7 +453,7 @@ end
 ######################################################################	
 # FUNCTION:		 intraAlignDist
 ######################################################################	
-function intraAlignDist(chain::Chain;out="distMat")
+function intraAlignDist(chain::Chainout="distMat")
     if out=="distMat"
 	if chain.mappedTo=="" 
 	    error("chain has no mapping")
@@ -479,7 +479,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeIntraRoc
 ######################################################################	
-@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chainsz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
     if chain.mappedTo==""
 	error("chain has no mapping")
     end
@@ -523,7 +523,7 @@ end
 ######################################################################	
 # FUNCTION:		 filterInterScore
 ######################################################################	
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chainsz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -561,7 +561,7 @@ end
 	return newScore
     end
 end
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String;sz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::Stringsz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     LENG1=getHmmLength(hmm1)	
@@ -606,7 +606,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeInterRoc
 ######################################################################	
-@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chainsz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -619,23 +619,23 @@ end
 
     # Get naccess cutoff if necessary
     if naccessRatio<1.0
-	naList1=zeros(LENG1);
-	naList2=zeros(LENG2);
-	i=1;
+	naList1=zeros(LENG1)
+	naList2=zeros(LENG2)
+	i=1
 	for r1 in values(chain1.align)
-	    naList1[i]=r1.naccess;
-	    i+=1;
+	    naList1[i]=r1.naccess
+	    i+=1
 	end
-	i=1;
+	i=1
 	for r2 in values(chain2.align)
-	    naList2[i]=r2.naccess;
-	    i+=1;
+	    naList2[i]=r2.naccess
+	    i+=1
 	end
-	naList1=sort(naList1,rev=true);
-	na1Cutoff=naList1[parse(Int64,round(LENG1*naccessRatio))];
+	naList1=sort(naList1,rev=true)
+	na1Cutoff=naList1[parse(Int64,round(LENG1*naccessRatio))]
 	println(na1Cutoff)
-	naList2=sort(naList2,rev=true);
-	na2Cutoff=naList2[parse(Int64,round(LENG2*naccessRatio))];
+	naList2=sort(naList2,rev=true)
+	na2Cutoff=naList2[parse(Int64,round(LENG2*naccessRatio))]
 	println(na2Cutoff)
     end
 
@@ -659,7 +659,7 @@ end
 	    if haskey(chain1.align,ind1) && haskey(chain2.align,ind2)
 		if naccessRatio<1.0
 		    if chain1.align[ind1].naccess<na1Cutoff || chain2.align[ind2].naccess<na2Cutoff
-			continue;
+			continue
 		    end
 		end
 		s+=1
@@ -701,7 +701,7 @@ end
 # FUNCTION:		 makeMarriedContactMap
 ######################################################################	
 ## IDIOCY: THIS DOES THE SAME THING AS THE FUNCTION "interAlignDist"
-function makeMarriedContactMap(chain1::Chain,chain2::Chain;output::String="default")
+function makeMarriedContactMap(chain1::Chain,chain2::Chainoutput::String="default")
     chain1map=chain1.mappedTo
     chain2map=chain2.mappedTo
     chain1map=="" && error("chain $(chain1.identifier) has no mapping")
@@ -753,7 +753,7 @@ end
 ######################################################################	
 # FUNCTION:		 countContacts
 ######################################################################	
-function countContacts(chain::Chain;min_separation=5,cutoff=8.0)
+function countContacts(chain::Chainmin_separation=5,cutoff=8.0)
     nums=sort([n for n in keys(chain.align)])
     contacts=0
     for i=1:length(nums)
@@ -780,7 +780,7 @@ end
 ######################################################################	
 # FUNCTION:		 st2fa
 ######################################################################	
-function st2fa(iFile;oFile="default") 
+function st2fa(iFileoFile="default") 
     !isfile(iFile) && error("File not found")
     if oFile=="default"
 	oFile="$iFile.st2fa"
@@ -826,24 +826,24 @@ end
 ######################################################################	
 # FUNCTION:		 interactionSurface(chain1,chain2)
 ######################################################################	
-function interactionSurface(chain1,chain2;numbersOnly::Bool=true,alignedOnly::Bool=true,cutoff::Float64=8.0)
+function interactionSurface(chain1,chain2numbersOnly::Bool=true,alignedOnly::Bool=true,cutoff::Float64=8.0)
     if chain1.mappedTo=="" || chain2.mappedTo==""
-	return interactionSurface_unmapped(chain1,chain2;numbersOnly=numbersOnly,cutoff=cutoff)
+	return interactionSurface_unmapped(chain1,chain2numbersOnly=numbersOnly,cutoff=cutoff)
     end
-    pdbPairs=0;
-    alignmentPairs=0;
+    pdbPairs=0
+    alignmentPairs=0
     if !numbersOnly
 	iS=Array((String,String),0)
     end
     for r1 in values(chain1.residue)
 	for r2 in values(chain2.residue)
 	    if residueDist(r1,r2)<cutoff
-		pdbPairs+=1;
+		pdbPairs+=1
 		if !numbersOnly && !alignedOnly
 		    push!(iS,(r1.identifier,r2.identifier))
 		end
 		if r1.alignmentPos>0 && r2.alignmentPos>0
-		    alignmentPairs+=1;
+		    alignmentPairs+=1
 		    if !numbersOnly && alignedOnly
 			push!(iS,(r1.identifier,r2.identifier))
 		    end
@@ -859,15 +859,15 @@ function interactionSurface(chain1,chain2;numbersOnly::Bool=true,alignedOnly::Bo
     end
     
 end
-function interactionSurface_unmapped(chain1,chain2;numbersOnly::Bool=true,cutoff::Float64=8.0)
-    pdbPairs=0;
+function interactionSurface_unmapped(chain1,chain2numbersOnly::Bool=true,cutoff::Float64=8.0)
+    pdbPairs=0
     if !numbersOnly
 	iS=Array((String,String),0)
     end
     for r1 in values(chain1.residue)
 	for r2 in values(chain2.residue)
 	    if residueDist(r1,r2)<cutoff
-		pdbPairs+=1;
+		pdbPairs+=1
 		if !numbersOnly
 		    push!(iS,(r1.identifier,r2.identifier))
 		end
