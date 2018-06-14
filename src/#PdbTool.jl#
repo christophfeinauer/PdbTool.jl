@@ -860,14 +860,14 @@ function interactionSurface(chain1,chain2;numbersOnly::Bool=true,alignedOnly::Bo
     
 end
 function interactionSurface_unmapped(chain1,chain2;numbersOnly::Bool=true,cutoff::Float64=8.0)
-    pdbPairs=0;
+    pdbPairs=0
     if !numbersOnly
 	iS=Array((String,String),0)
     end
     for r1 in values(chain1.residue)
 	for r2 in values(chain2.residue)
 	    if residueDist(r1,r2)<cutoff
-		pdbPairs+=1;
+		pdbPairs+=1
 		if !numbersOnly
 		    push!(iS,(r1.identifier,r2.identifier))
 		end
