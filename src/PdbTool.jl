@@ -24,11 +24,6 @@
 
 module PdbTool
 using Compat, Printf
-include("show_methods.jl")
-include("EXT_TEST.jl")
-using .EXT_TEST
-include("aminoAcidDict.jl")
-
 
 macro spath()
     return dirname(Base.source_path()) * "/"
@@ -62,18 +57,18 @@ end
 
 mutable struct Strand
     identifier::Int64
-    startRes::String
-    endRes::String
+    startRes::AbstractString
+    endRes::AbstractString
     sense::Int64
-    bondThis::String
-    bondPrev::String
-    Strand(identifier::Int64,startRes::String,endRes::String,sense::Int64,bondThis::String,bondPrev::String)=new(identifier::Int64,startRes::String,endRes::String,sense::Int64,bondThis::String,bondPrev::String)
+    bondThis::AbstractString
+    bondPrev::AbstractString
+    Strand(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)
 end
 
 mutable struct Sheet
-    identifier::String
+    identifier::AbstractString
     strand::Dict{Int64,Strand}
-    Sheet(identifier::String)=new(identifier,Dict{Int64,Strand}())
+    Sheet(identifier::AbstractString)=new(identifier,Dict{Int64,Strand}())
 end
 
 mutable struct Helix
@@ -101,6 +96,16 @@ mutable struct Pdb
     fileName::String
     Pdb()=new(Dict{String,Chain}(),"","")
 end
+
+######################################################################	
+# include external files:		 parsePdb             	
+######################################################################	
+
+include("show_methods.jl")
+include("EXT_TEST.jl")
+using .EXT_TEST
+include("aminoAcidDict.jl")
+
 
 ######################################################################	
 # FUNCTION:		 parsePdb             	
@@ -192,7 +197,7 @@ end
 ######################################################################	
 # FUNCTION:		 residueDist
 ######################################################################	
-function residueDist(res1::Residue, res2::Residue distType="heavyMin")
+function residueDist(res1::Residue, res2::Residue; distType::String="heavyMin")
     if distType=="heavyMin"
 	d=Inf
 	for atom1 in values(res1.atom)
@@ -235,7 +240,7 @@ end
 ######################################################################	
 # FUNCTION:		 interAlignDist
 ######################################################################	
-function interAlignDist(ch1::Chain, ch2::Chainout="undef")
+function interAlignDist(ch1::Chain, ch2::Chain;out="undef")
     if ch1.mappedTo==""
 	error("chain 1 not mapped")
     end
@@ -310,16 +315,16 @@ function mapChainToHmm(chain::Chain,hmmFile::String)
 	    error("cannot run cmsearch - please check that it is on the path")
 	end
         
-        @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,DevNull))
+        @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,devnull))
     end
 
-    st2fa("$tempFile.out"oFile=tempFile)
-    align=collect(split(readstring(tempFile),'\n'))
+    st2fa("$tempFile.out", oFile=tempFile)
+    align=collect(split(read(tempFile,String),'\n'))
     
     rm("$tempFile")
     rm("$tempFile.out")		
-    pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-    cleanIndices=find(.![islower(align[2][x]) for x=1:length(align[2])])
+    pdbIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
+    cleanIndices=findall(.![islowercase(align[2][x]) for x=1:length(align[2])])
     
     fakeAlign2pdb=-ones(Int64,length(align[2]))
     fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
@@ -327,7 +332,7 @@ function mapChainToHmm(chain::Chain,hmmFile::String)
     
     for k in keys(chain.residue)
 	if chain.residue[k].pdbPos > 0
-	    x=find(align2pdb.==chain.residue[k].pdbPos)
+	    x=findall(align2pdb.==chain.residue[k].pdbPos)
 	    if length(x)>1
 		error("found several pdb positions")
 	    end
@@ -355,12 +360,12 @@ function alignSeqToHmm(seq::String,hmmFile::String)
     end
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
-    st2fa("$tempFile.out"oFile=tempFile)
+    st2fa("$tempFile.out",oFile=tempFile)
     @compat align=collect(split(readall(tempFile),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
-    return filter(x->!islower(x),align[2])
+    return filter(x->!islowercase(x),align[2])
 end
 
 ######################################################################	
@@ -378,13 +383,13 @@ function mapSeqToHmm(seq::String,hmmFile::String)
     end
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
-    st2fa("$tempFile.out"oFile=tempFile)
+    st2fa("$tempFile.out",oFile=tempFile)
     @compat align=collect(split(readall(tempFile),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
     seqIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-    cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+    cleanIndices=find(![islowercase(align[2][x]) for x=1:length(align[2])])
 
     fakeAlign2seq=-ones(Int64,length(align[2]))
     @compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
@@ -417,21 +422,21 @@ function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
 	if !EXT_TEST_hmmsearch()
 	    error("cannot run hmmsearch - please check that it is on the path")
 	end
-        run(pipeline(`hmmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))                    
+        run(pipeline(`hmmsearch -A $tempFile.out $hmmFile $tempFile`, devnull))                    
     else
 	if !EXT_TEST_cmsearch()
 	    error("cannot run cmsearch - please check that it is on the path")
 	end
-	run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, DevNull))
+	run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`, devnull))
         
     end
-    st2fa("$tempFile.out"oFile=tempFile)
+    st2fa("$tempFile.out",oFile=tempFile)
     align=split(readstring(tempFile),'\n')
     rm("$tempFile")
     rm("$tempFile.out")
     (pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1])[1])
     pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-    cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+    cleanIndices=find(![islowercase(align[2][x]) for x=1:length(align[2])])
     fakeAlign2pdb=-ones(Int64,length(align[2]))
     fakeAlign2pdb[pdbIndices]=[pdbStart:pdbStop]
     align2pdb=fakeAlign2pdb[cleanIndices]
@@ -453,7 +458,7 @@ end
 ######################################################################	
 # FUNCTION:		 intraAlignDist
 ######################################################################	
-function intraAlignDist(chain::Chainout="distMat")
+function intraAlignDist(chain::Chain;out="distMat")
     if out=="distMat"
 	if chain.mappedTo=="" 
 	    error("chain has no mapping")
@@ -479,7 +484,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeIntraRoc
 ######################################################################	
-@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chainsz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
     if chain.mappedTo==""
 	error("chain has no mapping")
     end
@@ -487,9 +492,9 @@ end
 	fid=open(out)
     end
     if !pymolMode
-	roc=Array{Tuple{String,String,Float64,Float64}}(0)
+	roc=Array{Tuple{String,String,Float64,Float64}}(undef,0)
     else
-	roc=Array{Tuple{String,String,Int64,Float64}}(0)
+	roc=Array{Tuple{String,String,Int64,Float64}}(undef,0)
     end
     s::Int64=0
     i::Int64=0
@@ -523,7 +528,7 @@ end
 ######################################################################	
 # FUNCTION:		 filterInterScore
 ######################################################################	
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chainsz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain; sz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -535,7 +540,7 @@ end
     LENG2=getHmmLength(chain2.mappedTo)
 
     if out=="return"
-	newScore=Array((String,String,Float64),sz)
+	newScore=Array{String,String,Float64}(undef,sz)
 	s::Int64=0
 	i::Int64=0
 	hits::Int64=0
@@ -561,7 +566,7 @@ end
 	return newScore
     end
 end
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::Stringsz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String; sz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     LENG1=getHmmLength(hmm1)	
@@ -606,7 +611,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeInterRoc
 ######################################################################	
-@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chainsz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -621,7 +626,7 @@ end
     if naccessRatio<1.0
 	naList1=zeros(LENG1)
 	naList2=zeros(LENG2)
-	i=1
+	i=1;
 	for r1 in values(chain1.align)
 	    naList1[i]=r1.naccess
 	    i+=1
@@ -701,7 +706,7 @@ end
 # FUNCTION:		 makeMarriedContactMap
 ######################################################################	
 ## IDIOCY: THIS DOES THE SAME THING AS THE FUNCTION "interAlignDist"
-function makeMarriedContactMap(chain1::Chain,chain2::Chainoutput::String="default")
+function makeMarriedContactMap(chain1::Chain,chain2::Chain;output::String="default")
     chain1map=chain1.mappedTo
     chain2map=chain2.mappedTo
     chain1map=="" && error("chain $(chain1.identifier) has no mapping")
@@ -753,7 +758,7 @@ end
 ######################################################################	
 # FUNCTION:		 countContacts
 ######################################################################	
-function countContacts(chain::Chainmin_separation=5,cutoff=8.0)
+function countContacts(chain::Chain;min_separation=5,cutoff=8.0)
     nums=sort([n for n in keys(chain.align)])
     contacts=0
     for i=1:length(nums)
@@ -780,7 +785,7 @@ end
 ######################################################################	
 # FUNCTION:		 st2fa
 ######################################################################	
-function st2fa(iFileoFile="default") 
+function st2fa(iFile;oFile="default") 
     !isfile(iFile) && error("File not found")
     if oFile=="default"
 	oFile="$iFile.st2fa"
@@ -826,9 +831,9 @@ end
 ######################################################################	
 # FUNCTION:		 interactionSurface(chain1,chain2)
 ######################################################################	
-function interactionSurface(chain1,chain2numbersOnly::Bool=true,alignedOnly::Bool=true,cutoff::Float64=8.0)
+function interactionSurface(chain1,chain2;numbersOnly::Bool=true,alignedOnly::Bool=true,cutoff::Float64=8.0)
     if chain1.mappedTo=="" || chain2.mappedTo==""
-	return interactionSurface_unmapped(chain1,chain2numbersOnly=numbersOnly,cutoff=cutoff)
+	return interactionSurface_unmapped(chain1,chain2,numbersOnly=numbersOnly,cutoff=cutoff)
     end
     pdbPairs=0
     alignmentPairs=0
@@ -838,12 +843,12 @@ function interactionSurface(chain1,chain2numbersOnly::Bool=true,alignedOnly::Boo
     for r1 in values(chain1.residue)
 	for r2 in values(chain2.residue)
 	    if residueDist(r1,r2)<cutoff
-		pdbPairs+=1
+		pdbPairs+=1;
 		if !numbersOnly && !alignedOnly
 		    push!(iS,(r1.identifier,r2.identifier))
 		end
 		if r1.alignmentPos>0 && r2.alignmentPos>0
-		    alignmentPairs+=1
+		    alignmentPairs+=1;
 		    if !numbersOnly && alignedOnly
 			push!(iS,(r1.identifier,r2.identifier))
 		    end
@@ -859,7 +864,7 @@ function interactionSurface(chain1,chain2numbersOnly::Bool=true,alignedOnly::Boo
     end
     
 end
-function interactionSurface_unmapped(chain1,chain2numbersOnly::Bool=true,cutoff::Float64=8.0)
+function interactionSurface_unmapped(chain1,chain2;numbersOnly::Bool=true,cutoff::Float64=8.0)
     pdbPairs=0
     if !numbersOnly
 	iS=Array((String,String),0)
@@ -879,7 +884,6 @@ function interactionSurface_unmapped(chain1,chain2numbersOnly::Bool=true,cutoff:
     else
 	return iS
     end
-    
 end
 end #</module>
 
