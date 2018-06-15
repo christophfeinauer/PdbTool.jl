@@ -361,7 +361,7 @@ function alignSeqToHmm(seq::String,hmmFile::String)
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
     st2fa("$tempFile.out",oFile=tempFile)
-    @compat align=collect(split(readall(tempFile),'\n'))
+    @compat align=collect(split(read(tempFile,String),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
@@ -384,7 +384,7 @@ function mapSeqToHmm(seq::String,hmmFile::String)
     @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
     st2fa("$tempFile.out",oFile=tempFile)
-    @compat align=collect(split(readall(tempFile),'\n'))
+    @compat align=collect(split(read(tempFile,String),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
@@ -793,7 +793,7 @@ function st2fa(iFile;oFile="default")
     iFid=open(iFile,"r")
     oFid=open(oFile,"w")
     seqDict=Dict{String,String}()
-    for line in eachline(iFid,chomp=false)
+    for line in eachline(iFid,keep=true)
 	line[1]=='#' && continue
 	s=split(line)
 	length(s)!=2 && continue
