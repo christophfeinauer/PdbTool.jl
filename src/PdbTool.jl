@@ -349,7 +349,7 @@ using Compat
                 @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readall(tempFile),'\n'))
+	        @compat align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
@@ -372,12 +372,12 @@ using Compat
                 @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readall(tempFile),'\n'))
+	        @compat align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
 		seqIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+		cleanIndices=find(.!([islower(align[2][x]) for x=1:length(align[2])]))
 
 		fakeAlign2seq=-ones(Int64,length(align[2]))
 		@compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
@@ -396,7 +396,7 @@ using Compat
 	######################################################################	
 	function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
 		# Check if the chain already has a mapping - and delete it if yes
-		if chain.mappedTo!=""
+		if chain.mappedTo != ""
 			println("chain $(chain.identifier) already has a mapping.")
 		end
 		
@@ -423,8 +423,8 @@ using Compat
 		rm("$tempFile")
 		rm("$tempFile.out")
 		(pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1])[1])
-		pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-		cleanIndices=find(![islower(align[2][x]) for x=1:length(align[2])])
+		pdbIndices=find([align[2][x] != '-' for x=1:length(align[2])]) 
+		cleanIndices=find(.!([islower(align[2][x]) for x=1:length(align[2])]))
 		fakeAlign2pdb=-ones(Int64,length(align[2]))
 		fakeAlign2pdb[pdbIndices]=[pdbStart:pdbStop]
 		align2pdb=fakeAlign2pdb[cleanIndices]
