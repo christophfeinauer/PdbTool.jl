@@ -388,8 +388,8 @@ function mapSeqToHmm(seq::String,hmmFile::String)
 
     rm("$tempFile")
     rm("$tempFile.out")		
-    seqIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-    cleanIndices=find(![islowercase(align[2][x]) for x=1:length(align[2])])
+    seqIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
+    cleanIndices=findall(.!([islowercase(align[2][x]) for x=1:length(align[2])]))
 
     fakeAlign2seq=-ones(Int64,length(align[2]))
     @compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
@@ -435,14 +435,14 @@ function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
     rm("$tempFile")
     rm("$tempFile.out")
     (pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1])[1])
-    pdbIndices=find([align[2][x]!='-' for x=1:length(align[2])]) 
-    cleanIndices=find(![islowercase(align[2][x]) for x=1:length(align[2])])
+    pdbIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
+    cleanIndices=findall(.!([islowercase(align[2][x]) for x=1:length(align[2])]))
     fakeAlign2pdb=-ones(Int64,length(align[2]))
     fakeAlign2pdb[pdbIndices]=[pdbStart:pdbStop]
     align2pdb=fakeAlign2pdb[cleanIndices]
     for k in keys(chain.residue)
 	if chain.residue[k].pdbPos > 0
-	    x=find(align2pdb.==chain.residue[k].pdbPos)
+	    x=findall(align2pdb.==chain.residue[k].pdbPos)
 	    if length(x)>1
 		error("found several pdb positions")
 	    end
