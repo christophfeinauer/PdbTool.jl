@@ -40,15 +40,15 @@ KRES="\033[0m"
 ######################################################################	
 
 mutable struct Atom
-    identifier::Int64
+    identifier::Int
     coordinates::Tuple{Float64,Float64,Float64}
 end
 
 mutable struct Residue
     aminoAcid::String
     atom::Dict{String,Atom}
-    pdbPos::Int64
-    alignmentPos::Int64
+    pdbPos::Int
+    alignmentPos::Int
     identifier::String
     naccess::Float64
     naccess_rel::Float64
@@ -56,19 +56,19 @@ mutable struct Residue
 end
 
 mutable struct Strand
-    identifier::Int64
+    identifier::Int
     startRes::AbstractString
     endRes::AbstractString
-    sense::Int64
+    sense::Int
     bondThis::AbstractString
     bondPrev::AbstractString
-    Strand(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)
+    Strand(identifier::Int,startRes::AbstractString,endRes::AbstractString,sense::Int,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int,startRes::AbstractString,endRes::AbstractString,sense::Int,bondThis::AbstractString,bondPrev::AbstractString)
 end
 
 mutable struct Sheet
     identifier::AbstractString
-    strand::Dict{Int64,Strand}
-    Sheet(identifier::AbstractString)=new(identifier,Dict{Int64,Strand}())
+    strand::Dict{Int,Strand}
+    Sheet(identifier::AbstractString)=new(identifier,Dict{Int,Strand}())
 end
 
 mutable struct Helix
@@ -80,14 +80,14 @@ end
 
 mutable struct Chain
     residue::Dict{String,Residue}
-    length::Int64
+    length::Int
     mappedTo::String
     identifier::String
-    align::Dict{Int64,Residue}
+    align::Dict{Int,Residue}
     helix::Dict{String,Helix}
     sheet::Dict{String,Sheet}
     isRNA::Bool
-    Chain()=new(Dict{String,Residue}(),0,"","",Dict{Int64,Residue}(),Dict{String,Helix}(),Dict{String,Sheet}(),false)
+    Chain()=new(Dict{String,Residue}(),0,"","",Dict{Int,Residue}(),Dict{String,Helix}(),Dict{String,Sheet}(),false)
 end
 
 mutable struct Pdb
@@ -160,7 +160,7 @@ function parsePdb(pdbFile::String)
 	    end
 	    ch=strip(l[22:22])
 	    sh=strip(l[12:14])
-	    str=parse(Int64,strip(l[8:10]))
+	    str=parse(Int,strip(l[8:10]))
 	    if !haskey(pdb.chain,ch)
 		pdb.chain[ch]=Chain()
 		pdb.chain[ch].identifier=ch
@@ -175,7 +175,7 @@ function parsePdb(pdbFile::String)
 	    if haskey(pdb.chain[ch].sheet[sh].strand,str)
 		error("Found the same strand twice and panicked")
 	    end
-	    sense=parse(Int64,l[39:40])
+	    sense=parse(Int,l[39:40])
 	    if sense!=0
 		pdb.chain[ch].sheet[sh].strand[str]=Strand(str,strip(l[23:27]),strip(l[34:38]),sense,strip(l[51:55]),strip(l[66:70]))
 	    else
@@ -249,7 +249,7 @@ function interAlignDist(ch1::Chain, ch2::Chain;out="undef")
     end
     LENG1=getHmmLength(ch1.mappedTo)
     LENG2=getHmmLength(ch2.mappedTo)
-    completeAlign=Dict{Int64,Residue}()
+    completeAlign=Dict{Int,Residue}()
     for i in keys(ch1.align)
 	completeAlign[i]=ch1.align[i]
     end
@@ -309,13 +309,12 @@ function mapChainToHmm(chain::Chain,hmmFile::String)
 	if !EXT_TEST_hmmalign()
 	    error("cannot run hmmalign - please check that it is on the path")
 	end
-        @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+        run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
     else
 	if !EXT_TEST_cmsearch()
 	    error("cannot run cmsearch - please check that it is on the path")
-	end
-        
-        @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,devnull))
+	end        
+        run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,devnull))
     end
 
     st2fa("$tempFile.out", oFile=tempFile)
@@ -326,7 +325,7 @@ function mapChainToHmm(chain::Chain,hmmFile::String)
     pdbIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
     cleanIndices=findall(.![islowercase(align[2][x]) for x=1:length(align[2])])
     
-    fakeAlign2pdb=-ones(Int64,length(align[2]))
+    fakeAlign2pdb=-ones(Int,length(align[2]))
     fakeAlign2pdb[pdbIndices]=collect(1:length(pdbSeq))
     align2pdb=fakeAlign2pdb[cleanIndices]
     
@@ -358,10 +357,10 @@ function alignSeqToHmm(seq::String,hmmFile::String)
     if !EXT_TEST_hmmalign()
 	error("cannot run hmmalign - please check that it is on the path")
     end
-    @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+    run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
     st2fa("$tempFile.out",oFile=tempFile)
-    @compat align=collect(split(read(tempFile,String),'\n'))
+    align=collect(split(read(tempFile,String),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
@@ -381,21 +380,21 @@ function mapSeqToHmm(seq::String,hmmFile::String)
     if !EXT_TEST_hmmalign()
 	error("cannot run hmmalign - please check that it is on the path")
     end
-    @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+    run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
     st2fa("$tempFile.out",oFile=tempFile)
-    @compat align=collect(split(read(tempFile,String),'\n'))
+    align=collect(split(read(tempFile,String),'\n'))
 
     rm("$tempFile")
     rm("$tempFile.out")		
     seqIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
     cleanIndices=findall(.!([islowercase(align[2][x]) for x=1:length(align[2])]))
 
-    fakeAlign2seq=-ones(Int64,length(align[2]))
-    @compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
+    fakeAlign2seq=-ones(Int,length(align[2]))
+    fakeAlign2seq[seqIndices]=collect(1:length(seq))
     align2seq=fakeAlign2seq[cleanIndices]
     
-    hmm2seq = Dict{Int64,Int64}()
+    hmm2seq = Dict{Int,Int}()
     for (hmm_ind,seq_ind) in enumerate(align2seq)
 	seq_ind == -1 && continue
 	hmm2seq[hmm_ind] = seq_ind
@@ -434,10 +433,10 @@ function mapChainToHmmLegacy(chain::Chain,hmmFile::String)
     align=split(readstring(tempFile),'\n')
     rm("$tempFile")
     rm("$tempFile.out")
-    (pdbStart,pdbStop)=parse(Int64,matchall(r"\d+",align[1])[1])
+    (pdbStart,pdbStop)=parse(Int,matchall(r"\d+",align[1])[1])
     pdbIndices=findall([align[2][x]!='-' for x=1:length(align[2])]) 
     cleanIndices=findall(.!([islowercase(align[2][x]) for x=1:length(align[2])]))
-    fakeAlign2pdb=-ones(Int64,length(align[2]))
+    fakeAlign2pdb=-ones(Int,length(align[2]))
     fakeAlign2pdb[pdbIndices]=[pdbStart:pdbStop]
     align2pdb=fakeAlign2pdb[cleanIndices]
     for k in keys(chain.residue)
@@ -484,7 +483,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeIntraRoc
 ######################################################################	
-@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int64=4)
+function makeIntraRoc(score::Array{Tuple{Int,Int,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,minSeparation::Int=4)
     if chain.mappedTo==""
 	error("chain has no mapping")
     end
@@ -494,11 +493,11 @@ end
     if !pymolMode
 	roc=Array{Tuple{String,String,Float64,Float64}}(undef,0)
     else
-	roc=Array{Tuple{String,String,Int64,Float64}}(undef,0)
+	roc=Array{Tuple{String,String,Int,Float64}}(undef,0)
     end
-    s::Int64=0
-    i::Int64=0
-    hits::Int64=0
+    s::Int=0
+    i::Int=0
+    hits::Int=0
     while s<sz && i<length(score)
 	i+=1
 	if abs(score[i][1]-score[i][2]) <= minSeparation 
@@ -528,7 +527,7 @@ end
 ######################################################################	
 # FUNCTION:		 filterInterScore
 ######################################################################	
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain; sz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int,Int,Float64},1},chain1::Chain,chain2::Chain; sz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -541,10 +540,10 @@ end
 
     if out=="return"
 	newScore=Array{String,String,Float64}(undef,sz)
-	s::Int64=0
-	i::Int64=0
-	hits::Int64=0
-	positives::Int64=0
+	s::Int=0
+	i::Int=0
+	hits::Int=0
+	positives::Int=0
 	while s<sz && i<size(score,1)
 	    i+=1
 	    if score[i][1] <= LENG1 && score[i][2] > LENG1
@@ -566,21 +565,21 @@ end
 	return newScore
     end
 end
-@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::String,hmm2::String; sz=200,cutoff::Float64=8.0,out::String="return")
+@compat function filterInterScore(score::Array{Tuple{Int,Int,Float64},1},hmm1::String,hmm2::String; sz=200,cutoff::Float64=8.0,out::String="return")
 
     # Check if mapping is existent
     LENG1=getHmmLength(hmm1)	
     LENG2=getHmmLength(hmm2)
 
     if out=="return"
-	interScore=Array(Tuple{Int64,Int64,Float64},0)
-	score1=Array(Tuple{Int64,Int64,Float64},0)
-	score2=Array(Tuple{Int64,Int64,Float64},0)
+	interScore=Array(Tuple{Int,Int,Float64},0)
+	score1=Array(Tuple{Int,Int,Float64},0)
+	score2=Array(Tuple{Int,Int,Float64},0)
 
-	s::Int64=0
-	i::Int64=0
-	hits::Int64=0
-	positives::Int64=0
+	s::Int=0
+	i::Int=0
+	hits::Int=0
+	positives::Int=0
 	for i=1:length(score)
 	    
 	    if score[i][1] <= LENG1 && score[i][2] > LENG1
@@ -611,7 +610,7 @@ end
 ######################################################################	
 # FUNCTION:		 makeInterRoc
 ######################################################################	
-@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+@compat function makeInterRoc(score::Array{Tuple{Int,Int,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::String="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
     # Check if mapping is existent
     if chain1.mappedTo == ""
@@ -637,19 +636,19 @@ end
 	    i+=1
 	end
 	naList1=sort(naList1,rev=true)
-	na1Cutoff=naList1[parse(Int64,round(LENG1*naccessRatio))]
+	na1Cutoff=naList1[parse(Int,round(LENG1*naccessRatio))]
 	println(na1Cutoff)
 	naList2=sort(naList2,rev=true)
-	na2Cutoff=naList2[parse(Int64,round(LENG2*naccessRatio))]
+	na2Cutoff=naList2[parse(Int,round(LENG2*naccessRatio))]
 	println(na2Cutoff)
     end
 
     if out=="return"
 	roc=Array(Tuple{String,String,Float64,Float64},0)
-	s::Int64=0
-	i::Int64=0
-	hits::Int64=0
-	positives::Int64=0
+	s::Int=0
+	i::Int=0
+	hits::Int=0
+	positives::Int=0
 	while s<sz && i<size(score,1)
 	    i+=1
 	    if score[i][1] <= LENG1 && score[i][2] > LENG1
@@ -695,7 +694,7 @@ function getHmmLength(hmmFile::String)
     !isfile(hmmFile) && error("File not readable")
     for l in eachline(open(hmmFile))
 	if l[1:4] == "LENG" || l[1:4]=="CLEN"
-	    LENG=parse(Int64,match(r"\d+",l).match)
+	    LENG=parse(Int,match(r"\d+",l).match)
 	    return LENG
 	end
     end
