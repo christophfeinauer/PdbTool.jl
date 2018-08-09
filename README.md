@@ -49,14 +49,21 @@ Compatibility
 
 v0.1.0 can be run with julia 0.4 and julia 0.5
 v0.2.0 now supports julia version 0.6
+v07 supports julia version 0.7
 
 Installation
 ------------
 
-To install the package, use the command
+To install the package under version < 0.7, use the command
 
 ```
 	julia>Pkg.clone("https://github.com/christophfeinauer/PdbTool")
+```
+
+To install the package under version >= 0.7 please use the new package manager (it can be activated from the REPL using the key `]`)
+
+```
+(v0.7) pkg> add https://github.com/christophfeinauer/PdbTool.jl #v07
 ```
 
 Alternatively, clone/download the repository and do a
