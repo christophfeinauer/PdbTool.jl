@@ -57,7 +57,7 @@ Installation
 To install the package under version < 0.7, use the command
 
 ```
-	julia>Pkg.clone("https://github.com/christophfeinauer/PdbTool")
+julia>Pkg.clone("https://github.com/christophfeinauer/PdbTool")
 ```
 
 To install the package under version >= 0.7 please use the new package manager (it can be activated from the REPL using the key `]`)
@@ -69,7 +69,7 @@ To install the package under version >= 0.7 please use the new package manager (
 Alternatively, clone/download the repository and do a
 	
 ```
-	julia>include("REPO_DIR/src/PdbTool.jl")
+julia>include("REPO_DIR/src/PdbTool.jl")
 ```
 
 whith REPO_DIR replaced with the direcrory you download the repository to.
