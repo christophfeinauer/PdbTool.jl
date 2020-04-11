@@ -1,0 +1,8 @@
+*~
+.*.swp
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+*.lyx~
+.DS_Store
+Manifest.jl
