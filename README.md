@@ -47,8 +47,9 @@ Everything has been tested with HMMER 3.1b1, and 3.1b2 (see http://hmmer.janelia
 Compatibility
 -------------
 
-v0.1.0 can be run with julia 0.4 and julia 0.5
-v0.2.0 now supports julia version 0.6
+* v0.1.0 can be run with julia 0.4 and julia 0.5
+* v0.2.0 now supports julia version 0.6
+* v0.3.0 supports julia versions 1.0 and later.
 
 Installation
 ------------
