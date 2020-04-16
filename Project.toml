@@ -1,5 +1,6 @@
 name = "PdbTool"
 uuid = "be69cb46-3af1-5a2c-8426-f7f9d5958b20"
+version = "0.1.0"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
