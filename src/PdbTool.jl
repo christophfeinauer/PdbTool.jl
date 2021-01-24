@@ -40,11 +40,11 @@ module PdbTool
 	######################################################################	
 	# TYPE DEFINITIONS
 	######################################################################	
-	struct Atom
+	mutable struct Atom
 	        identifier::Int64
 		    coordinates::Tuple{Float64,Float64,Float64}
 	end
-	struct Residue
+	mutable struct Residue
 		aminoAcid::AbstractString
 	        atom::Dict{AbstractString,Atom}
 		pdbPos::Int64
@@ -54,7 +54,7 @@ module PdbTool
 		naccess_rel::Float64
 		Residue(aa,pp,id)=new(aa,Dict{AbstractString,Atom}(),pp,-1,id,-1.0,-1.0)
 	end
-	struct Strand
+	mutable struct Strand
 		identifier::Int64
 		startRes::AbstractString
 		endRes::AbstractString
@@ -63,18 +63,18 @@ module PdbTool
 		bondPrev::AbstractString
 		Strand(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)
 	end
-	struct Sheet
+	mutable struct Sheet
 		identifier::AbstractString
 		strand::Dict{Int64,Strand}
 		Sheet(identifier::AbstractString)=new(identifier,Dict{Int64,Strand}())
 	end
-	struct Helix
+	mutable struct Helix
 		startRes::AbstractString
 		endRes::AbstractString
 		identifier::AbstractString
 		Helix(sR,eR,id)=new(sR,eR,id)
 	end
-	struct Chain
+	mutable struct Chain
 	        residue::Dict{AbstractString,Residue}
 	        length::Int64
 		mappedTo::AbstractString
@@ -85,7 +85,7 @@ module PdbTool
 		isRNA::Bool
 	        Chain()=new(Dict{AbstractString,Residue}(),0,"","",Dict{Int64,Residue}(),Dict{AbstractString,Helix}(),Dict{AbstractString,Sheet}(),false)
 	end
-	struct Pdb
+	mutable struct Pdb
 	        chain::Dict{AbstractString,Chain}
 	        pdbName::AbstractString
 	        fileName::AbstractString
