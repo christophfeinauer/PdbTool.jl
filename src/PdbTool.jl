@@ -23,8 +23,7 @@
 # For questions and suggestions please use the Github page https://github.com/christophfeinauer/PdbTool
 
 module PdbTool
-using Compat
-
+    using Printf
 	macro spath()
 	        return dirname(Base.source_path()) * "/"
 	end
@@ -41,11 +40,11 @@ using Compat
 	######################################################################	
 	# TYPE DEFINITIONS
 	######################################################################	
-	type Atom
+	struct Atom
 	        identifier::Int64
-		@compat coordinates::Tuple{Float64,Float64,Float64}
+		    coordinates::Tuple{Float64,Float64,Float64}
 	end
-	type Residue
+	struct Residue
 		aminoAcid::AbstractString
 	        atom::Dict{AbstractString,Atom}
 		pdbPos::Int64
@@ -55,7 +54,7 @@ using Compat
 		naccess_rel::Float64
 		Residue(aa,pp,id)=new(aa,Dict{AbstractString,Atom}(),pp,-1,id,-1.0,-1.0)
 	end
-	type Strand
+	struct Strand
 		identifier::Int64
 		startRes::AbstractString
 		endRes::AbstractString
@@ -64,18 +63,18 @@ using Compat
 		bondPrev::AbstractString
 		Strand(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)=new(identifier::Int64,startRes::AbstractString,endRes::AbstractString,sense::Int64,bondThis::AbstractString,bondPrev::AbstractString)
 	end
-	type Sheet
+	struct Sheet
 		identifier::AbstractString
 		strand::Dict{Int64,Strand}
 		Sheet(identifier::AbstractString)=new(identifier,Dict{Int64,Strand}())
 	end
-	type Helix
+	struct Helix
 		startRes::AbstractString
 		endRes::AbstractString
 		identifier::AbstractString
 		Helix(sR,eR,id)=new(sR,eR,id)
 	end
-	type Chain
+	struct Chain
 	        residue::Dict{AbstractString,Residue}
 	        length::Int64
 		mappedTo::AbstractString
@@ -86,7 +85,7 @@ using Compat
 		isRNA::Bool
 	        Chain()=new(Dict{AbstractString,Residue}(),0,"","",Dict{Int64,Residue}(),Dict{AbstractString,Helix}(),Dict{AbstractString,Sheet}(),false)
 	end
-	type Pdb
+	struct Pdb
 	        chain::Dict{AbstractString,Chain}
 	        pdbName::AbstractString
 	        fileName::AbstractString
@@ -297,13 +296,12 @@ using Compat
 			if !EXT_TEST_hmmalign()
 				error("cannot run hmmalign - please check that it is on the path")
 			end
-                    @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+            run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 		else
 			if !EXT_TEST_cmsearch()
 				error("cannot run cmsearch - please check that it is on the path")
 			end
-                    
-                    @compat run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,DevNull))
+                run(pipeline(`cmsearch -A $tempFile.out $hmmFile $tempFile`,DevNull))
 		end
 
 		st2fa("$tempFile.out";oFile=tempFile)
@@ -346,10 +344,10 @@ using Compat
 		if !EXT_TEST_hmmalign()
 			error("cannot run hmmalign - please check that it is on the path")
 		end
-                @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+            run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readstring(tempFile),'\n'))
+	        align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
@@ -369,10 +367,10 @@ using Compat
 		if !EXT_TEST_hmmalign()
 			error("cannot run hmmalign - please check that it is on the path")
 		end
-                @compat run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
+        run(pipeline(`hmmalign $hmmFile $tempFile`,"$tempFile.out"))
 
 		st2fa("$tempFile.out";oFile=tempFile)
-	        @compat align=collect(split(readstring(tempFile),'\n'))
+	    align=collect(split(readstring(tempFile),'\n'))
 
 		rm("$tempFile")
 		rm("$tempFile.out")		
@@ -380,7 +378,7 @@ using Compat
 		cleanIndices=find(.!([islower(align[2][x]) for x=1:length(align[2])]))
 
 		fakeAlign2seq=-ones(Int64,length(align[2]))
-		@compat fakeAlign2seq[seqIndices]=collect(1:length(seq))
+		fakeAlign2seq[seqIndices]=collect(1:length(seq))
 		align2seq=fakeAlign2seq[cleanIndices]
 		
 		hmm2seq = Dict{Int64,Int64}()
@@ -472,7 +470,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 makeIntraRoc
 	######################################################################	
-	@compat function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,minSeparation::Int64=4)
+	function makeIntraRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,minSeparation::Int64=4)
 		if chain.mappedTo==""
 			error("chain has no mapping")
 		end
@@ -516,7 +514,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 filterInterScore
 	######################################################################	
-	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
+	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
@@ -554,7 +552,7 @@ using Compat
 			return newScore
 		end
 	end
-	@compat function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::AbstractString,hmm2::AbstractString;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
+	function filterInterScore(score::Array{Tuple{Int64,Int64,Float64},1},hmm1::AbstractString,hmm2::AbstractString;sz=200,cutoff::Float64=8.0,out::AbstractString="return")
 
 		# Check if mapping is existent
 		LENG1=getHmmLength(hmm1)	
@@ -599,7 +597,7 @@ using Compat
 	######################################################################	
 	# FUNCTION:		 makeInterRoc
 	######################################################################	
-	@compat function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
+	function makeInterRoc(score::Array{Tuple{Int64,Int64,Float64},1},chain1::Chain,chain2::Chain;sz=200,cutoff::Float64=8.0,out::AbstractString="return",pymolMode::Bool=false,naccessRatio::Float64=1.0)
 
 		# Check if mapping is existent
 		if chain1.mappedTo == ""
