@@ -1,0 +1,7 @@
+name = "PdbTool"
+uuid = "54454283-203c-41f8-9496-5bfde514d3a5"
+authors = ["Christoph Feinauer <christophfeinauer@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
