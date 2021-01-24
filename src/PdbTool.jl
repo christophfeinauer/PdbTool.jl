@@ -28,6 +28,10 @@ module PdbTool
 	        return dirname(Base.source_path()) * "/"
 	end
 
+    readstring(fname::String) = read(fname, String)
+    find(x) = findall(x)
+    islower(x) = islowercase(x)
+
 	KRED="\x1B[31m"
 	KGRN="\x1B[32m"
 	KRES="\033[0m"
@@ -780,6 +784,7 @@ module PdbTool
 		oFid=open(oFile,"w")
 		seqDict=Dict{AbstractString,AbstractString}()
         for line in eachline(iFid)
+            length(line)==0 && continue
 			line[1]=='#' && continue
 			s=split(line)
 			length(s)!=2 && continue
