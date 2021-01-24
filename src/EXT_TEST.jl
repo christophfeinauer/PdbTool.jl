@@ -9,7 +9,7 @@ export EXT_TEST_cmsearch
 ######################################################################
 function EXT_TEST_hmmalign()
 	try
-	    run(pipeline(`hmmalign -h`, DevNull))
+	    run(pipeline(`hmmalign -h`, devnull))
 	catch	
 	    return false
 	end
@@ -21,7 +21,7 @@ end
 ######################################################################
 function EXT_TEST_hmmsearch()
 	try
-	    run(pipeline(`hmmsearch -h`, DevNull))
+	    run(pipeline(`hmmsearch -h`, devnull))
 	catch	
 	    return false
 	end
@@ -33,7 +33,7 @@ end
 ######################################################################
 function EXT_TEST_cmsearch()
 	try
-	    run(pipeline(`cmsearch -h`, DevNull))
+	    run(pipeline(`cmsearch -h`, devnull))
 	catch	
 	    return false
 	end
