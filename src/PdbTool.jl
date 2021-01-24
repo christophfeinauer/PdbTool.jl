@@ -482,9 +482,9 @@ module PdbTool
 			fid=open(out)
 		end
 		if !pymolMode
-			roc=Array{Tuple{AbstractString,AbstractString,Float64,Float64}}(0)
+			roc=Array{Tuple{AbstractString,AbstractString,Float64,Float64}}(undef, 0)
 		else
-			roc=Array{Tuple{AbstractString,AbstractString,Int64,Float64}}(0)
+			roc=Array{Tuple{AbstractString,AbstractString,Int64,Float64}}(undef, 0)
 		end
 			s::Int64=0
 			i::Int64=0
