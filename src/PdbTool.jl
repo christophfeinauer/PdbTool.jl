@@ -779,7 +779,7 @@ module PdbTool
 		iFid=open(iFile,"r")
 		oFid=open(oFile,"w")
 		seqDict=Dict{AbstractString,AbstractString}()
-		for line in eachline(iFid,chomp=false)
+        for line in eachline(iFid)
 			line[1]=='#' && continue
 			s=split(line)
 			length(s)!=2 && continue

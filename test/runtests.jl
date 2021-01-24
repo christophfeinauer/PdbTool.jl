@@ -3,6 +3,7 @@ KGRN="\x1B[32m"
 KRES="\033[0m"
 
 using PdbTool
+using Printf
 
 macro spath()
 	return dirname(Base.source_path()) * "/"
